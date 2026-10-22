@@ -13,7 +13,7 @@
       "tagline": "Turn DMs into staff-managed support tickets.",
       "description": "A Discord modmail bot. Members DM the bot and every conversation becomes a public thread in one tickets channel, where staff reply (optionally anonymously), claim, and close it. Closed tickets are archived as transcript files in a private channel and can be searched later.",
       "language": "JavaScript",
-      "runtime": "Node.js 18+",
+      "runtime": "Node.js 22.12+",
       "tags": [
         "discord",
         "moderation",
@@ -22,15 +22,14 @@
         "sqlite"
       ],
       "status": "beta",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "icon": "mail-bubble",
       "features": [
         "Two-way DM to thread bridging, including edits and deletes",
-        "Claim and unclaim tickets, with alerts to a mod-help channel",
+        "Claim and unclaim tickets, with a staff ping when a ticket goes back in the queue",
         "Anonymous staff replies",
         "Snippets (canned responses)",
         "Transcripts archived as Discord attachments, searchable with /logs",
-        "Rate-limit-safe thread renaming with staff fallback alerts",
         "SQLite storage, Docker support"
       ],
       "commands": [
@@ -43,7 +42,7 @@
           "description": "Claim the ticket thread"
         },
         {
-          "name": "/unclaim [reason]",
+          "name": "/unclaim",
           "description": "Release the ticket thread"
         },
         {
@@ -67,7 +66,7 @@
           "description": "Manage and send canned responses"
         },
         {
-          "name": "/config color|activity|emoji|helpchannel|staffrole|view",
+          "name": "/config color|activity|emoji|view",
           "description": "Change bot settings"
         },
         {
@@ -76,14 +75,14 @@
         }
       ],
       "requirements": [
-        "Node.js 18+ (or Docker)",
+        "Node.js 22.12+ (or Docker)",
         "Discord bot token",
         "Message Content and Server Members privileged intents",
         "A tickets channel, a private archive channel, and a staff role"
       ],
       "telemetry": "none",
       "download": {
-        "file": "/downloads/modmail/modmail-1.0.1.zip",
+        "file": "/downloads/modmail/modmail-1.0.2.zip",
         "sourceDir": "bots/modmail",
         "github": {
           "repo": "LuniVex/lunibot",
@@ -92,7 +91,7 @@
         }
       },
       "released": "2026-07-01",
-      "updated": "2026-10-21",
+      "updated": "2026-10-22",
       "license": "GPL-3.0-only"
     },
     {
@@ -101,7 +100,7 @@
       "tagline": "Record voice meetings, get structured AI notes.",
       "description": "A Discord meeting note-taker. It joins your voice channel, records each speaker separately, transcribes the audio with OpenAI Whisper, strips filler words, and posts a titled, structured summary with a timed transcript to an archive channel. Also includes a per-user expense tracker with monthly budgets.",
       "language": "JavaScript",
-      "runtime": "Node.js 18+",
+      "runtime": "Node.js 22.12+",
       "tags": [
         "discord",
         "voice",
@@ -111,7 +110,7 @@
         "expenses"
       ],
       "status": "beta",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "icon": "voice-notes",
       "features": [
         "Per-speaker voice recording with silence-based segmentation",
@@ -148,13 +147,13 @@
         }
       ],
       "requirements": [
-        "Node.js 18+",
+        "Node.js 22.12+",
         "Discord bot token and client ID",
         "OpenAI API key (usage billed by OpenAI)"
       ],
       "telemetry": "Audio and transcripts are sent to OpenAI for transcription and summarisation. The bot itself sends nothing else.",
       "download": {
-        "file": "/downloads/discmeet/discmeet-1.0.1.zip",
+        "file": "/downloads/discmeet/discmeet-1.0.2.zip",
         "sourceDir": "bots/discmeet",
         "github": {
           "repo": "LuniVex/lunibot",
@@ -163,7 +162,7 @@
         }
       },
       "released": "2026-06-27",
-      "updated": "2026-10-21",
+      "updated": "2026-10-22",
       "license": "GPL-3.0-only"
     }
   ]
