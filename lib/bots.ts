@@ -36,7 +36,9 @@ export const bots = data.bots as Bot[];
 
 export const getBot = (slug: string) => bots.find((b) => b.slug === slug);
 export const allTags = () => [...new Set(bots.flatMap((b) => b.tags))].sort();
-export const sourceUrl = (b: Bot) => `https://github.com/${b.download.github.repo}/tree/main/${b.download.github.path}`;
+// Folder names can contain spaces ("music bot"), so each path segment is URL-encoded.
+export const sourceUrl = (b: Bot) =>
+  `https://github.com/${b.download.github.repo}/tree/main/${b.download.github.path.split("/").map(encodeURIComponent).join("/")}`;
 
 export const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ||

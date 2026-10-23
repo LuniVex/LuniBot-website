@@ -164,6 +164,76 @@
       "released": "2026-06-27",
       "updated": "2026-10-22",
       "license": "GPL-3.0-only"
+    },
+    {
+      "name": "Music Bot",
+      "slug": "music-bot",
+      "tagline": "Music from almost anywhere, with live synced lyrics.",
+      "description": "A Discord music bot. Type a song name or paste a link from YouTube, Spotify, SoundCloud, Bandcamp, Twitch or any of 1800+ other sites, and control playback from buttons on a live now-playing card. Lyrics follow the song line by line, every member can save their own playlists, and audio is streamed straight from the source instead of being downloaded first.",
+      "language": "JavaScript",
+      "runtime": "Node.js 22.12+",
+      "tags": [
+        "discord",
+        "music",
+        "voice",
+        "lyrics",
+        "youtube",
+        "spotify"
+      ],
+      "status": "beta",
+      "version": "1.0.0",
+      "icon": "music-lyrics",
+      "features": [
+        "Plays YouTube, YouTube Music, SoundCloud, Bandcamp, Twitch and 1800+ other sites",
+        "Spotify tracks, albums and playlists matched to a playable source, no API key needed",
+        "Button controls: pause, skip, previous, loop, shuffle, volume and audio filters",
+        "Live synced lyrics that highlight the current line, with a ±2s sync nudge",
+        "Search with autocomplete, a picker for ambiguous results, and an optional request channel",
+        "Personal saved playlists, a DJ role and 24/7 mode",
+        "Reconnects after voice drops and resumes where the song left off",
+        "SQLite storage, Docker support and a health check endpoint"
+      ],
+      "commands": [
+        {
+          "name": "/play <query> [next] [choose] [lyrics]",
+          "description": "Play a song, playlist, album or live stream by name or link"
+        },
+        {
+          "name": "/queue [page]",
+          "description": "Show the queue"
+        },
+        {
+          "name": "/lyrics [query] [live]",
+          "description": "Lyrics for the current song, a manual search, or live lyrics on the player"
+        },
+        {
+          "name": "/playlist save|load|list|delete",
+          "description": "Your own saved playlists"
+        },
+        {
+          "name": "/settings view|volume|dj-role|always-on|music-channel",
+          "description": "Server settings (Manage Server)"
+        }
+      ],
+      "requirements": [
+        "Node.js 22.12+ (or Docker)",
+        "Python 3.10+ (the bot installs and updates yt-dlp itself)",
+        "Discord bot token",
+        "Optional: Message Content privileged intent, for the music request channel"
+      ],
+      "telemetry": "Audio is fetched from the sites you play, lyrics from LRCLIB, search suggestions from YouTube, and Spotify links from Spotify. yt-dlp updates come from PyPI. Musixmatch, Genius and the Spotify API are only contacted if you add their keys.",
+      "download": {
+        "file": "/downloads/music-bot/music-bot-1.0.0.zip",
+        "sourceDir": "bots/music-bot",
+        "github": {
+          "repo": "LuniVex/lunibot",
+          "path": "music bot",
+          "releases": "https://github.com/LuniVex/lunibot/releases"
+        }
+      },
+      "released": "2026-10-23",
+      "updated": "2026-10-23",
+      "license": "GPL-3.0-only"
     }
   ]
 }

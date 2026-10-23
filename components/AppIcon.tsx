@@ -28,6 +28,16 @@ const icons: Record<string, { color: string; glyph: (tile: string) => React.Reac
       </>
     ),
   },
+  // Music Bot: a pair of beamed notes beside lines of lyrics (songs with synced lyrics).
+  "music-lyrics": {
+    color: "#7c3aed",
+    glyph: () => (
+      <>
+        <path fill="currentColor" d="M5.4 6.4 13.2 4.7c.6-.1 1.1.3 1.1.9v9.3a2.6 2.6 0 1 1-1.8-2.5V8.4L7.2 9.6v7.1a2.6 2.6 0 1 1-1.8-2.5V7.3c0-.4.3-.8.7-.9z" />
+        <path d="M16.9 8.2h3.7M16.9 12h3.7M16.9 15.8h2.3" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" />
+      </>
+    ),
+  },
 };
 
 /** The bot's colour, for accents that should match its icon. */
