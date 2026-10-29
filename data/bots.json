@@ -186,6 +186,7 @@
       "features": [
         "Plays YouTube, YouTube Music, SoundCloud, Bandcamp, Twitch and 1800+ other sites",
         "Spotify tracks, albums and playlists matched to a playable source, no API key needed",
+        "Searches try YouTube, SoundCloud, Bandcamp, Audius, Mixcloud and the Internet Archive in turn, and a song one site refuses plays from the next",
         "Button controls: pause, skip, previous, loop, shuffle, volume and audio filters",
         "Live synced lyrics that highlight the current line, with a ±2s sync nudge",
         "Search with autocomplete, a picker for ambiguous results, and an optional request channel",
@@ -221,7 +222,7 @@
         "Discord bot token",
         "Optional: Message Content privileged intent, for the music request channel"
       ],
-      "telemetry": "Audio is fetched from the sites you play, lyrics from LRCLIB, search suggestions from YouTube, and Spotify links from Spotify. yt-dlp updates come from PyPI. Musixmatch, Genius and the Spotify API are only contacted if you add their keys.",
+      "telemetry": "Audio is fetched from the sites you play, and searches go to YouTube, SoundCloud, Bandcamp, Audius, Mixcloud and the Internet Archive. Lyrics come from LRCLIB, search suggestions from YouTube, and Spotify links from Spotify. yt-dlp updates come from PyPI. Musixmatch, Genius and the Spotify API are only contacted if you add their keys.",
       "download": {
         "file": "/downloads/music-bot/music-bot-1.0.0.zip",
         "sourceDir": "bots/music-bot",
@@ -232,7 +233,7 @@
         }
       },
       "released": "2026-10-23",
-      "updated": "2026-10-23",
+      "updated": "2026-10-29",
       "license": "GPL-3.0-only"
     }
   ]
