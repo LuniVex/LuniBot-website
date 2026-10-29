@@ -181,7 +181,7 @@
         "spotify"
       ],
       "status": "beta",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "icon": "music-lyrics",
       "features": [
         "Plays YouTube, YouTube Music, SoundCloud, Bandcamp, Twitch and 1800+ other sites",
@@ -224,7 +224,7 @@
       ],
       "telemetry": "Audio is fetched from the sites you play, and searches go to YouTube, SoundCloud, Bandcamp, Audius, Mixcloud and the Internet Archive. Lyrics come from LRCLIB, search suggestions from YouTube, and Spotify links from Spotify. yt-dlp updates come from PyPI. Musixmatch, Genius and the Spotify API are only contacted if you add their keys.",
       "download": {
-        "file": "/downloads/music-bot/music-bot-1.0.0.zip",
+        "file": "/downloads/music-bot/music-bot-1.0.1.zip",
         "sourceDir": "bots/music-bot",
         "github": {
           "repo": "LuniVex/lunibot",
