@@ -54,3 +54,11 @@ export async function toggleVote(slug: string, visitor: string): Promise<Votes> 
   else await s.setAdd(k.votes(slug), visitor);
   return getVotes(slug, visitor);
 }
+
+/** Everything the site shows for one bot. The hub and the bot page both read this, so their figures always agree. */
+export interface BotStats { downloads: Downloads; votes: Votes }
+
+export async function getStats(slug: string, visitor: string): Promise<BotStats> {
+  const [downloads, votes] = await Promise.all([getDownloads(slug), getVotes(slug, visitor)]);
+  return { downloads, votes };
+}

@@ -1,23 +1,32 @@
 "use client";
-import { animate, motion, useInView, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
-import { useEffect, useRef } from "react";
-import { ease } from "@/lib/motion";
+import { useRef } from "react";
+import { gsap, reducedMotion, ScrollTrigger, soft, useGSAP } from "@/lib/motion";
 
-/** Rolls up to its value once visible, and glides between values when it changes. */
+const fmt = (v: number) => Math.round(v).toLocaleString("en-GB");
+
+/** Rolls up to its value once it is on screen, and glides between values when it changes. */
 export function Count({ value }: { value: number }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const seen = useInView(ref, { once: true });
-  const reduce = useReducedMotion();
-  const mv = useMotionValue(0); // same starting text on server and client; reduced motion jumps straight to the value
-  const text = useTransform(mv, (v) => Math.round(v).toLocaleString("en-GB"));
+  const shown = useRef({ n: 0 }); // same starting text on server and client
 
-  useEffect(() => {
-    if (reduce) { mv.set(value); return; }
-    if (!seen) return;
-    const distance = Math.abs(value - mv.get());
-    const c = animate(mv, value, { duration: distance <= 1 ? 0.5 : Math.min(1.6, 0.8 + Math.log10(distance + 1) * 0.35), ease });
-    return () => c.stop();
-  }, [value, seen, reduce, mv]);
+  useGSAP(() => {
+    const el = ref.current!;
+    const draw = () => { el.textContent = fmt(shown.current.n); };
+    if (reducedMotion()) { shown.current.n = value; draw(); return; }
+    const distance = Math.abs(value - shown.current.n);
+    const roll = () => gsap.to(shown.current, {
+      n: value, duration: distance <= 1 ? 0.5 : Math.min(1.6, 0.8 + Math.log10(distance + 1) * 0.35), ease: soft, onUpdate: draw, overwrite: true,
+    });
+    // The first roll waits until the number is on screen; later changes animate straight away.
+    if (shown.current.n === 0) ScrollTrigger.create({ trigger: el, start: "top bottom", once: true, onEnter: roll });
+    else roll();
+  }, { dependencies: [value], scope: ref });
 
-  return <motion.span ref={ref} className="tabular-nums">{text}</motion.span>;
+  // Screen readers get the real figure straight away; the rolling digits are for the eye only.
+  return (
+    <span className="tabular-nums">
+      <span ref={ref} aria-hidden="true">0</span>
+      <span className="sr-only">{fmt(value)}</span>
+    </span>
+  );
 }

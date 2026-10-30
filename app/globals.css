@@ -18,7 +18,7 @@
   h1, h2, h3 { text-wrap: balance; }
   p { text-wrap: pretty; }
   a { color: inherit; text-decoration: none; }
-  :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 6px; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: var(--radius-ui); }
   ::selection { background: color-mix(in srgb, var(--blue) 25%, transparent); }
   button { cursor: pointer; }
   button:disabled { cursor: not-allowed; }
@@ -26,22 +26,56 @@
 
 @layer components {
   /* Type scale, fluid between phone and desktop. */
-  .t-hero    { font-size: clamp(2.75rem, 6.5vw + 0.5rem, 5rem); line-height: 1.05; font-weight: 600; letter-spacing: -0.015em; }
-  .t-section { font-size: clamp(2.25rem, 4vw + 0.5rem, 3.5rem); line-height: 1.07; font-weight: 600; letter-spacing: -0.005em; }
+  .t-hero    { font-size: clamp(2.75rem, 6.5vw + 0.5rem, 5rem); line-height: 1.05; font-weight: 600; letter-spacing: -0.025em; }
+  .t-section { font-size: clamp(2.25rem, 4vw + 0.5rem, 3.5rem); line-height: 1.07; font-weight: 600; letter-spacing: -0.015em; }
   .t-tile    { font-size: clamp(1.75rem, 2vw + 1rem, 2.5rem); line-height: 1.1; font-weight: 600; letter-spacing: 0; }
   .t-lead    { font-size: clamp(1.1875rem, 1vw + 0.9rem, 1.75rem); line-height: 1.25; font-weight: 400; letter-spacing: 0.004em; }
   .t-intro   { font-size: clamp(1.3125rem, 1.4vw + 0.9rem, 2rem); line-height: 1.25; font-weight: 600; letter-spacing: 0.004em; }
   .t-small   { font-size: 0.875rem; line-height: 1.43; letter-spacing: -0.016em; }
   .t-tiny    { font-size: 0.75rem; line-height: 1.33; letter-spacing: -0.01em; }
+  .t-h3      { font-size: 1.3125rem; line-height: 1.25; font-weight: 600; letter-spacing: 0.002em; }
+  .t-body-lg { font-size: 1.1875rem; line-height: 1.45; letter-spacing: -0.01em; }
+  .t-figure  { font-size: 2.5rem; line-height: 1; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .t-mono    { font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.5; letter-spacing: 0; }
+  .t-control    { font-size: 0.9375rem; line-height: 1.33; }
+  .t-control-lg { font-size: 1.0625rem; line-height: 1.3; }
 
   .link { color: var(--link); }
   .link:hover { text-decoration: underline; text-underline-offset: 0.15em; }
+  /* Colour changes on hover and focus: quick to respond (180ms), slower to let go (420ms), on the site's
+     `arrive` curve. Transforms are never CSS-transitioned: springs own them (skills/motion.md). */
   .smooth {
-    transition-property: color, background-color, border-color, opacity, transform, box-shadow;
-    transition-duration: 300ms;
+    transition-property: color, background-color, border-color, opacity, text-decoration-color;
+    transition-duration: 420ms;
     transition-timing-function: var(--ease);
   }
+  .smooth:hover, .smooth:focus-visible { transition-duration: 180ms; }
 }
+
+/* Bot marks (components/Mark.tsx): constant 1.5px strokes at any size; the solid shape takes the accent. */
+.mark svg { display: block; width: 100%; height: 100%; stroke-width: var(--mark-sw, 1.5); overflow: visible; }
+.mark .a { fill: var(--blue); }
+.mark .as { stroke: var(--blue); }
+/* Marks drawn on the static stack: keep 1px hairlines whatever the face's projection does to them. */
+.stack-mark * { vector-effect: non-scaling-stroke; stroke-width: 1px; }
+/* Once the 3D journey is live, it draws the stack itself: the static drawing steps aside. */
+html[data-journey-live] [data-stack-anchor] > svg { opacity: 0; transition: opacity 0.3s var(--ease); }
+
+/* The background system (components/Backdrop.tsx): LuniVex's moon with its hairline orbits and dial, and a
+   near dot field seen through a soft-edged window. Gradient functions here only draw dots, and masks fade
+   things out; they are never visible as colour. */
+/* The moon's orbits fade out with distance from it. */
+.orbits { mask-image: radial-gradient(circle closest-side, #000 30%, transparent 100%); }
+.lens { mask-image: radial-gradient(closest-side, #000 0%, transparent 100%); }
+.dots-field {
+  background-image: radial-gradient(circle at center, var(--line) 1.1px, transparent 1.6px);
+  background-size: 16px 16px;
+  background-position: 8px 8px;
+}
+
+/* Entrance content waits for the page transition. If scripts never run, it shows anyway after 3s. */
+.motion [data-enter] { visibility: hidden; animation: lb-show 0s 3s forwards; }
+@keyframes lb-show { to { visibility: visible; } }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

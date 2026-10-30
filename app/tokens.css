@@ -1,34 +1,45 @@
-/* Design tokens: palette, type, radii, motion. Light and dark are both defined here. */
+/*
+ * Design tokens (skills/color-and-tokens.md). Two neutrals, paper and ink, and one accent. Every other
+ * grey is a tint of ink on paper, so the palette stays two neutrals in both themes.
+ */
 
 :root {
-  --bg: #ffffff;
-  --bg-alt: #f5f5f7;
-  --tile: #f5f5f7;
-  --tile-on-alt: #ffffff;
-  --fg: #1d1d1f;
-  --fg-2: #6e6e73;
-  --fg-3: #86868b;
-  --line: #d2d2d7;
-  --blue: #0071e3;
-  --blue-hover: #0077ed;
-  --link: #0066cc;
-  --glass: rgba(255, 255, 255, 0.72);
+  --paper: #ffffff;
+  --ink: #1d1d1f;
+  --accent: #0071e3;
+
+  --fg-2: color-mix(in srgb, var(--ink) 64%, var(--paper));
+  --fg-3: color-mix(in srgb, var(--ink) 52%, var(--paper));
+  --line: color-mix(in srgb, var(--ink) 19%, var(--paper));
+  --tile: color-mix(in srgb, var(--ink) 4%, var(--paper));
+  --bg-alt: color-mix(in srgb, var(--ink) 2.5%, var(--paper));
+  --tile-on-alt: var(--paper);
+  /* The accent as text: nudged toward ink so links keep their contrast on paper. */
+  --accent-text: color-mix(in srgb, var(--accent) 90%, var(--ink));
 
   --ease: cubic-bezier(0.28, 0.11, 0.32, 1);
 }
 .dark {
-  --bg: #000000;
-  --bg-alt: #101012;
-  --tile: #1d1d1f;
-  --tile-on-alt: #1d1d1f;
-  --fg: #f5f5f7;
-  --fg-2: #a1a1a6;
-  --fg-3: #86868b;
-  --line: #424245;
-  --blue: #0071e3;
-  --blue-hover: #0077ed;
-  --link: #2997ff;
-  --glass: rgba(22, 22, 23, 0.72);
+  --paper: #000000;
+  --ink: #f5f5f7;
+
+  --fg-2: color-mix(in srgb, var(--ink) 66%, var(--paper));
+  --fg-3: color-mix(in srgb, var(--ink) 55%, var(--paper));
+  --line: color-mix(in srgb, var(--ink) 27%, var(--paper));
+  --tile: color-mix(in srgb, var(--ink) 12%, var(--paper));
+  --bg-alt: color-mix(in srgb, var(--ink) 6.5%, var(--paper));
+  --tile-on-alt: var(--tile);
+  --accent-text: color-mix(in srgb, var(--accent) 78%, var(--ink));
+}
+
+:root, .dark {
+  --bg: var(--paper);
+  --fg: var(--ink);
+  --blue: var(--accent);
+  --blue-hover: color-mix(in srgb, var(--accent) 90%, var(--ink));
+  --link: var(--accent-text);
+  /* Background texture (grids, dots): the hairline tint at low strength. */
+  --texture: color-mix(in srgb, var(--line) 40%, transparent);
 }
 
 @theme {
@@ -43,14 +54,13 @@
   --color-blue: var(--blue);
   --color-blue-hover: var(--blue-hover);
   --color-link: var(--link);
-  --color-glass: var(--glass);
 
   /* San Francisco on Apple devices; Inter (self-hosted) everywhere else. */
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter Variable", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
 
-  --radius-tile: 28px;
-  --radius-panel: 18px;
+  /* The one radius (skills/color-and-tokens.md): every surface, control, image and the terminal. */
+  --radius-ui: 4px;
 
   --container-page: 980px;
   --container-wide: 1200px;

@@ -45,20 +45,3 @@ export const iconColor = (icon: string) => icons[icon]?.color ?? "#6e6e73";
 
 /** The logo's SVG contents (24×24 viewBox), or null for an unknown icon. Also used by the link-preview images. */
 export const iconGlyph = (icon: string) => icons[icon]?.glyph(iconColor(icon)) ?? null;
-
-const sizes = { sm: "size-12 rounded-[11px]", md: "size-18 rounded-[16px]", lg: "size-28 rounded-[25px]" } as const;
-const glyphs = { sm: "size-8", md: "size-12", lg: "size-19" } as const;
-
-export function AppIcon({ icon, name, size = "md" }: { icon: string; name: string; size?: keyof typeof sizes }) {
-  const def = icons[icon];
-  return (
-    <span aria-hidden="true" className={`grid shrink-0 place-items-center text-white ring-1 ring-inset ring-black/10 ${sizes[size]}`}
-      style={{ background: iconColor(icon) }}>
-      {def ? (
-        <svg viewBox="0 0 24 24" fill="none" className={glyphs[size]}>{iconGlyph(icon)}</svg>
-      ) : (
-        <span className="text-2xl font-semibold">{name.charAt(0)}</span>
-      )}
-    </span>
-  );
-}

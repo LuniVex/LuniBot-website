@@ -2,7 +2,7 @@
 
 Showcase and download site for LuniVex's self-hosted Discord bots. Each bot has its own page, its own download served from this site, live download counts and upvotes.
 
-Stack: Next.js 16 (App Router) · TypeScript · Tailwind CSS 4 · Framer Motion · Upstash Redis. Ready for Vercel.
+Stack: Next.js 16 (App Router) · TypeScript · Tailwind CSS 4 · GSAP (ScrollTrigger, Flip, SplitText, DrawSVG) · Lenis · Three.js (lazy-loaded) · Upstash Redis. Ready for Vercel. One React Bits component (SplitText) is vendored in `components/bits/` with their licence.
 
 ## Setup
 
@@ -33,7 +33,7 @@ data/bots.json          Every bot. The one file to edit when adding or changing 
 public/downloads/       The zips the site serves, each with a .sha256 checksum file next to it
 app/                    Pages (/, /bots/[slug], /about, 404) and API routes (/api/*)
 components/             UI components
-lib/                    Data loading, datastore, analytics, formatting, motion settings
+lib/                    Data loading, datastore, analytics, the shared stats store, formatting, motion settings
 scripts/checksums.mjs   Writes the .sha256 files for the zips
 ```
 
@@ -41,8 +41,9 @@ scripts/checksums.mjs   Writes the .sha256 files for the zips
 
 1. Put the zip at `public/downloads/<slug>/<slug>-<version>.zip`. Include the bot's `LICENSE` file in it.
 2. Run `npm run checksums` to write its `.sha256` file.
-3. Add a logo to the `icons` map in `components/AppIcon.tsx`: a tile colour and a white SVG drawing on a 24×24 grid. Skip this step and the bot shows its first letter on a grey tile.
-4. Add an entry to `data/bots.json`:
+3. Draw its mark at `public/marks/<slug>.svg`: a 48×48 viewBox, `stroke="currentColor"`, `stroke-width="1.5"`, round caps, a hairline baseline `M6 42h36`, and one solid shape with `class="a"` (it takes the accent). Keep it a few hundred bytes; it is inlined into the page. Add its screenshots under `shots` in `data/bots.json` and put each PNG (1600×1000, 16:10) at the path given; until a file exists, its plate shows a drawing labelled "Screenshot to come".
+4. For link previews, add a logo to the `icons` map in `components/AppIcon.tsx`: a tile colour and a white SVG drawing on a 24×24 grid. Skip this step and the bot shows its first letter on a grey tile.
+5. Add an entry to `data/bots.json`:
 
 ```json
 {

@@ -23,6 +23,11 @@ export interface Bot {
   released: string;
   updated: string;
   license: string;
+  /**
+   * Screenshots, shown as framed plates. Put each file under public/ at the path given (PNG at 2x,
+   * 1600×1000, 16:10). Until a file exists, its plate shows a drawing of what it will show.
+   */
+  shots: Shot[];
   download: {
     /** Path under public/, e.g. /downloads/my-bot/my-bot-1.0.0.zip */
     file: string;
@@ -30,6 +35,8 @@ export interface Bot {
     github: { repo: string; path: string; releases: string };
   };
 }
+
+export interface Shot { file: string; caption: string; kind: "chat" | "card" | "list" }
 
 export const site = data.site;
 export const bots = data.bots as Bot[];

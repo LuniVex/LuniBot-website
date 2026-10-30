@@ -5,6 +5,11 @@ import type { Bot } from "./bots";
 
 export interface DownloadFile { fileName: string; size: number; sha256: string | null }
 
+/** Whether a file exists under public/, e.g. a screenshot that may not have been added yet. */
+export function inPublic(path: string): boolean {
+  try { return statSync(join(process.cwd(), "public", path)).isFile(); } catch { return false; }
+}
+
 /** Size and checksum of a bot's zip in public/downloads, read at build time. Null if the file is missing. */
 export function getFile(bot: Bot): DownloadFile | null {
   const abs = join(process.cwd(), "public", bot.download.file);

@@ -1,136 +1,221 @@
 "use client";
-import { AnimatePresence, LayoutGroup, motion, useInView } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { Votes } from "@/lib/analytics";
-import type { Bot } from "@/lib/bots";
-import { fetchJson } from "@/lib/fetch-json";
+import { memo, useMemo, useRef, useState } from "react";
+import type { Bot, Shot } from "@/lib/bots";
 import { fmtDate } from "@/lib/format";
 import { licenseInfo } from "@/lib/license";
-import { ease, fadeUp, glide } from "@/lib/motion";
-import { AppIcon } from "./AppIcon";
+import { arrive, cascade, Flip, gsap, reducedMotion, settle, settleDuration, spring, springs, useGSAP } from "@/lib/motion";
+import { useLoadStats, useStats } from "@/lib/stats-client";
+import { DownloadBars } from "./Bars";
 import { More, pill } from "./Button";
 import { Count } from "./Count";
+import { DownloadButton } from "./DownloadButton";
+import { Mark } from "./Mark";
+import { Appear, Assemble, finishAssemblies } from "./Motion";
+import { Plate } from "./Plate";
 import { VoteButton } from "./VoteButton";
 
-export interface Entry { bot: Bot; size: string }
+/** One bot as the hub shows it. `mark` is its inlined SVG; `shot` is its first screenshot, for the featured card. */
+export interface Entry { bot: Bot; size: string; index: string; mark: string | null; shot?: { shot: Shot; ready: boolean } }
 
-/** Tags are stored lowercase in bots.json; these need their proper spelling on screen. */
-const SPELLING: Record<string, string> = { ai: "AI", sqlite: "SQLite" };
-const label = (t: string) => SPELLING[t] ?? t.charAt(0).toUpperCase() + t.slice(1);
-interface Live { downloads: number; votes: Votes }
+/** How well a bot matches a search: name first, then tagline, then anything else. 0 means no match. */
+function score(bot: Bot, q: string) {
+  if (!q) return 1;
+  const name = bot.name.toLowerCase();
+  if (name.startsWith(q)) return 4;
+  if (name.includes(q)) return 3;
+  if (bot.tagline.toLowerCase().includes(q)) return 2;
+  return [bot.description, bot.language, ...bot.tags].join(" ").toLowerCase().includes(q) ? 1 : 0;
+}
 
-/** Search, tag filters and the bot tiles. The visible list is recomputed from state on every change. */
-export function BotGallery({ entries, tags }: { entries: Entry[]; tags: string[] }) {
+/**
+ * Search and the bot cards. Every card stays mounted: filtered-out ones are
+ * display:none and sorted to the end. A filter change is captured with GSAP Flip just before it happens
+ * and played once React has re-rendered, so cards glide to their new places, leaving cards fade out, and
+ * an interrupted change picks up from wherever the cards are. Nothing is ever unmounted mid-animation.
+ */
+export function BotGallery({ entries, featured, soonMark }: { entries: Entry[]; featured: string; soonMark: string | null }) {
   const [query, setQuery] = useState("");
-  const [tag, setTag] = useState<string | null>(null);
-  const [live, setLive] = useState<Record<string, Live>>({});
+  useLoadStats("all");
 
-  useEffect(() => {
-    let active = true;
-    fetchJson<Record<string, Live>>("/api/stats").then((d) => active && setLive(d)).catch(() => { /* counts show a dash */ });
-    return () => { active = false; };
-  }, []);
+  const q = query.trim().toLowerCase();
+  const visible = useMemo(() => entries
+    .map((e, i) => ({ e, i, s: score(e.bot, q) }))
+    .filter((x) => x.s > 0)
+    .sort((a, b) => b.s - a.s || a.i - b.i)
+    .map((x) => x.e.bot.slug), [entries, q]);
+  const filtering = Boolean(q);
+  const order = [...visible, ...entries.map((e) => e.bot.slug).filter((s) => !visible.includes(s))];
+  const bySlug = new Map(entries.map((e) => [e.bot.slug, e]));
 
-  const visible = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return entries.filter(({ bot }) =>
-      (!tag || bot.tags.includes(tag)) &&
-      (!q || [bot.name, bot.tagline, bot.description, bot.language, ...bot.tags].join(" ").toLowerCase().includes(q)));
-  }, [entries, query, tag]);
+  const grid = useRef<HTMLUListElement>(null);
+  const flip = useRef<{ state: Flip.FlipState; was: string[] } | null>(null);
+  const running = useRef<gsap.core.Timeline | null>(null);
+  const shown = useRef<string[]>(visible);
 
-  // Tiles reveal once: when the grid first scrolls into view, or as soon as someone searches or filters.
-  // `shown` never turns back off, so tiles that mount later go straight to fully visible.
-  const gridRef = useRef<HTMLUListElement>(null);
-  const inView = useInView(gridRef, { once: true, margin: "0px 0px -60px 0px" });
-  const [used, setUsed] = useState(false);
-  const shown = inView || used;
-  const [settled, setSettled] = useState(false); // after the first wave, new tiles don't wait for a stagger slot
-  useEffect(() => {
-    if (!shown) return;
-    const t = setTimeout(() => setSettled(true), 1200);
-    return () => clearTimeout(t);
-  }, [shown]);
+  const cards = () => gsap.utils.toArray<HTMLElement>("[data-card]", grid.current);
+  const update = (change: () => void) => {
+    finishAssemblies(grid.current); // someone filtered before the cards finished assembling
+    if (grid.current && !reducedMotion()) {
+      // Capture where everything is right now (mid-animation included), then stop the old move.
+      flip.current = { state: Flip.getState([grid.current, ...cards()], { props: "opacity" }), was: shown.current };
+      running.current?.kill();
+    }
+    change();
+  };
+
+  const key = `${visible.join(" ")}|${filtering}`;
+  useGSAP(() => {
+    shown.current = visible;
+    const pending = flip.current;
+    flip.current = null;
+    if (!pending) return;
+    const all = cards();
+    const isShown = (el: HTMLElement) => getComputedStyle(el).display !== "none";
+    const leaving = all.filter((el) => !isShown(el) && pending.was.includes(el.dataset.card!));
+    // Cards that stay are set back to full opacity; Flip animates them there from wherever they were.
+    gsap.set(all.filter(isShown), { clearProps: "opacity,visibility,zIndex" });
+    running.current = Flip.from(pending.state, {
+      // Cards travel on `settle`, a spring's motion: they leave at once, arrive with a hint of follow-through.
+      targets: [grid.current!, ...all], absolute: leaving, nested: true, duration: settleDuration, ease: settle,
+      onEnter: (els) => gsap.fromTo(els, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: arrive, stagger: cascade(0.06), delay: 0.05 }),
+      // A leaving card fades quickly underneath the cards moving into place (they sit at z-index 1).
+      onLeave: (els) => gsap.fromTo(els, { zIndex: 0 }, { autoAlpha: 0, duration: 0.22, ease: arrive }),
+      onComplete: () => { gsap.set(grid.current, { clearProps: "width,height" }); },
+    });
+  }, { dependencies: [key], scope: grid });
+
+  const clear = () => update(() => setQuery(""));
 
   return (
     <div>
-      <div className="flex flex-col items-center gap-5">
-        <label className="relative w-full max-w-md">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <label className="relative w-full sm:max-w-xs">
           <span className="sr-only">Search bots</span>
           <svg viewBox="0 0 16 16" aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-fg-3">
             <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="m11 11 3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setUsed(true); }} placeholder="Search by name, tag or language"
-            className="smooth h-12 w-full rounded-full border border-transparent bg-tile pl-11 pr-5 text-[17px] placeholder:text-fg-3 focus:border-blue focus:bg-bg focus:outline-none" />
+          <input type="search" value={query} onChange={(e) => { const v = e.target.value; update(() => setQuery(v)); }} placeholder="Search bots"
+            className="smooth t-control-lg h-12 w-full rounded-ui border border-transparent bg-tile pl-11 pr-5 placeholder:text-fg-3 hover:border-line focus:border-blue focus:bg-bg focus:outline-none" />
         </label>
 
-        <div role="group" aria-label="Filter by tag" className="flex max-w-full gap-1 overflow-x-auto rounded-full bg-tile p-1 [scrollbar-width:none]">
-          {[null, ...tags].map((t) => {
-            const on = tag === t;
-            return (
-              <button key={t ?? "all"} type="button" aria-pressed={on} onClick={() => { setTag(t); setUsed(true); }}
-                className={`smooth relative shrink-0 rounded-full px-4 py-1.5 text-[14px] ${on ? "text-bg" : "text-fg-2 hover:text-fg"}`}>
-                {on && <motion.span layoutId="tag-pill" transition={glide} className="absolute inset-0 rounded-full bg-fg" />}
-                <span className="relative">{t ? label(t) : "All"}</span>
-              </button>
-            );
-          })}
-        </div>
-        <p role="status" className="t-small text-fg-3">{visible.length === entries.length ? `${entries.length} bots` : `${visible.length} of ${entries.length} bots`}</p>
+        <p role="status" className="t-small font-mono text-fg-3 tabular-nums">{filtering ? `${visible.length} of ${entries.length} bots` : `${entries.length} bots`}</p>
       </div>
 
-      <LayoutGroup>
-        <motion.ul ref={gridRef} layout transition={glide} className="relative mt-10 grid gap-5 md:grid-cols-2">
-          <AnimatePresence mode="popLayout" initial={false}>
-            {visible.map((e, i) => (
-              <motion.li key={e.bot.slug} layout transition={glide}
-                initial={{ opacity: 0, y: 28, scale: 0.98 }}
-                animate={shown ? { opacity: 1, y: 0, scale: 1, transition: fadeUp(settled ? 0 : i * 0.1) } : { opacity: 0, y: 28, scale: 0.98 }}
-                exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.35, ease } }}
-                className="min-w-0">
-                <Tile {...e} live={live[e.bot.slug]} />
-              </motion.li>
-            ))}
-          </AnimatePresence>
-        </motion.ul>
-      </LayoutGroup>
+      <ul ref={grid} className="relative mt-6 grid gap-5 md:grid-cols-2">
+        {order.map((slug) => (
+          <li key={slug} data-card={slug} className={`relative z-[1] min-w-0 ${slug === featured ? "md:col-span-2" : ""} ${visible.includes(slug) ? "" : "hidden"}`}>
+            <Assemble className="h-full"><Tile {...bySlug.get(slug)!} featured={slug === featured} /></Assemble>
+          </li>
+        ))}
+        <li data-card="soon" className={`relative z-[1] min-w-0 md:col-span-2 ${filtering ? "hidden" : ""}`}><Assemble><Soon mark={soonMark} /></Assemble></li>
+      </ul>
 
-      <AnimatePresence>
-        {visible.length === 0 && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={fadeUp()}
-            className="mt-10 rounded-tile bg-tile px-8 py-16 text-center">
-            <p className="t-tile">No bots match{query.trim() ? ` “${query.trim()}”` : ""}{tag ? ` in ${tag}` : ""}.</p>
-            <p className="mt-3 text-fg-2">Search looks at names, descriptions, languages and tags.</p>
-            <button type="button" onClick={() => { setQuery(""); setTag(null); }} className={pill("secondary", "md", "mt-6")}>Show all bots</button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {visible.length === 0 && (
+        <Appear className="mt-5 rounded-ui bg-tile p-8">
+          <p className="t-tile">Nothing matches “{query.trim()}”.</p>
+          <p className="mt-3 text-fg-2">Search covers names, descriptions, languages and tags.</p>
+          <button type="button" onClick={clear} className={pill("secondary", "md", "mt-6")}>Show all bots</button>
+        </Appear>
+      )}
     </div>
   );
 }
 
-/** One bot: icon, name and line on a soft rounded tile. The whole tile opens the bot's page. */
-function Tile({ bot, size, live }: Entry & { live?: Live }) {
+/**
+ * Hover and keyboard focus on a card: it lifts 2px and a hairline fades in around it, both on the `hover`
+ * spring, so leaving mid-lift eases back with its momentum. The metadata brightens through CSS
+ * (`group-hover/card`), not JavaScript. Nothing here touches React state, so hovering never re-renders
+ * the card, and the card surface is its own compositing layer (`will-change-transform`) from the start,
+ * so the lift never swaps how its text is rasterised.
+ */
+function useCardHover() {
+  const ref = useRef<HTMLElement>(null);
+  const api = useRef<{ on: () => void; off: () => void } | null>(null);
+  useGSAP((_, contextSafe) => {
+    const card = ref.current!.querySelector<HTMLElement>("[data-lift]")!;
+    const hair = ref.current!.querySelector<HTMLElement>("[data-hair]")!;
+    const lift = spring(card, "y", springs.hover, { from: 0, unit: "px", eps: 0.02 });
+    const line = spring(hair, "opacity", springs.hover, { from: 0, eps: 0.002 });
+    const y = (v: number) => lift.to(v);
+    const lineTo = (v: number) => line.to(v);
+    api.current = {
+      on: contextSafe!(() => { if (!reducedMotion()) y(-2); lineTo(1); }),
+      off: contextSafe!(() => { y(0); lineTo(0); }),
+    };
+  }, { scope: ref });
+  const handlers = {
+    onPointerEnter: () => api.current?.on(),
+    onPointerLeave: () => api.current?.off(),
+    onFocus: () => api.current?.on(),
+    onBlur: (e: React.FocusEvent) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) api.current?.off(); },
+  };
+  return { ref, handlers };
+}
+
+/**
+ * One bot, left-aligned like a catalogue entry: its mark and index number, the name and line, its
+ * last 30 days of downloads as a bar row, then the actions on a hairline. The featured bot spans the
+ * full width with its first screenshot beside it. The whole card opens the bot's page.
+ */
+const Tile = memo(function Tile({ bot, size, index, mark, shot, featured }: Entry & { featured: boolean }) {
+  const { data } = useStats(bot.slug);
+  const downloads = data?.downloads.total;
   // The article is the hover target and never moves; only the card inside lifts. If the moving card were
   // the target, a cursor near its bottom edge would fall off it as it rose and the hover would stutter.
+  const { ref, handlers } = useCardHover();
   return (
-    <article className="group relative h-full">
-      <div className="relative flex h-full flex-col items-center rounded-tile bg-tile px-8 pb-10 pt-12 text-center ring-1 ring-transparent transition-[translate,box-shadow] duration-500 ease-[cubic-bezier(0.28,0.11,0.32,1)] group-hover:-translate-y-[3px] group-hover:shadow-[0_20px_50px_-30px_rgba(0,0,0,0.45)] dark:ring-white/[0.06]">
-        <AppIcon icon={bot.icon} name={bot.name} />
-        <p className="t-small mt-6 text-fg-3"><span className="capitalize">{bot.status}</span> · {bot.language} · {licenseInfo(bot.license).short}</p>
-        <h3 className="t-tile mt-1">
-          <Link href={`/bots/${bot.slug}`} className="after:absolute after:inset-0 after:rounded-tile">{bot.name}</Link>
-        </h3>
-        <p className="t-lead mt-3 max-w-[22ch] text-fg-2">{bot.tagline}</p>
-        <p className="t-small mt-5 text-fg-3 tabular-nums">
-          v{bot.version} · {size} · Updated {fmtDate(bot.updated)} · {live ? <><Count value={live.downloads} /> {live.downloads === 1 ? "download" : "downloads"}</> : "– downloads"}
-        </p>
-        <div className="relative z-10 mt-auto flex flex-wrap items-center justify-center gap-x-5 gap-y-3 pt-8">
-          <a href={`/api/download/${bot.slug}`} download="" className={pill("primary")}>Download</a>
-          <VoteButton slug={bot.slug} initial={live?.votes} />
-          <More href={`/bots/${bot.slug}`}>Learn more</More>
+    <article ref={ref} className="group/card relative h-full" {...handlers}>
+      <div data-lift="" data-press="0.985" className={`relative h-full will-change-transform rounded-ui bg-tile p-8 ${featured ? "grid gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-start" : "flex flex-col"}`}>
+        <span data-hair="" aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-ui border border-line opacity-0" />
+        <div className="flex h-full flex-col">
+          <div className="flex items-start justify-between">
+            {/* Where this bot's 3D slab lands on the hub (components/StackJourney.tsx). */}
+            <Mark svg={mark} name={bot.name} size={featured ? 72 : 56} optical journey={bot.slug} />
+            <span data-meta="" className="smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2 t-small font-mono text-fg-3 tabular-nums">{featured ? `${index}  Newest` : index}</span>
+          </div>
+          <p data-meta="" className="smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2 t-small mt-8 text-fg-3"><span className="capitalize">{bot.status}</span> · {bot.language} · {licenseInfo(bot.license).short}</p>
+          <h3 className={`mt-1 ${featured ? "t-section" : "t-tile"}`}>
+            <Link href={`/bots/${bot.slug}`} className="rounded-ui after:absolute after:inset-0 after:rounded-ui focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-blue">{bot.name}</Link>
+          </h3>
+          <p className={`mt-2 max-w-[30ch] text-fg-2 ${featured ? "t-lead" : "t-body-lg min-h-[2lh]"}`}>{bot.tagline}</p>
+
+          <div className="mt-8">
+            <DownloadBars slug={bot.slug} />
+            <p data-meta="" className="smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2 t-tiny mt-2 flex justify-between gap-4 font-mono text-fg-3 tabular-nums">
+              <span>Last 30 days</span>
+              <span>{downloads === undefined ? "–" : <Count value={downloads} />} {downloads === 1 ? "download" : "downloads"} in all</span>
+            </p>
+          </div>
+          <p data-meta="" className="smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2 t-small mb-8 mt-4 text-fg-3 tabular-nums">v{bot.version} · {size} · Updated {fmtDate(bot.updated)}</p>
+
+          <div className="relative z-10 mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line/70 pt-6">
+            <DownloadButton slug={bot.slug}>Download</DownloadButton>
+            <VoteButton slug={bot.slug} />
+            <More href={`/bots/${bot.slug}`}>Details</More>
+          </div>
+        </div>
+        {featured && shot && <Plate shot={shot.shot} fig={1} ready={shot.ready} />}
+      </div>
+    </article>
+  );
+});
+
+/** The last row: more bots are coming. It points to the one Discord call to action rather than repeating it. */
+const Soon = memo(function Soon({ mark }: { mark: string | null }) {
+  const { ref, handlers } = useCardHover();
+  return (
+    <article ref={ref} className="group/card relative" {...handlers}>
+      <div data-lift="" data-press="0.985" className="relative flex will-change-transform flex-col gap-6 rounded-ui p-8 md:flex-row md:items-center">
+        <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-ui border border-line/70" />
+        <span data-hair="" aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-ui border border-fg-3 opacity-0" />
+        <Mark svg={mark} name="More" size={56} optical className="text-fg-2" />
+        <div className="md:flex-1">
+          <p data-meta="" className="smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2 t-small font-mono text-fg-3">Coming soon</p>
+          <h3 className="t-tile mt-1">More bots</h3>
+          <p className="t-body-lg mt-2 max-w-[40ch] text-fg-2">New ones are in the works. Ideas go in the Discord, at the end of this page.</p>
         </div>
       </div>
     </article>
   );
-}
+});

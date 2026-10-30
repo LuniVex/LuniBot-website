@@ -92,7 +92,24 @@
       },
       "released": "2026-07-01",
       "updated": "2026-10-22",
-      "license": "GPL-3.0-only"
+      "license": "GPL-3.0-only",
+      "shots": [
+        {
+          "file": "/shots/modmail/ticket-thread.png",
+          "caption": "A member’s DM arrives as a ticket thread",
+          "kind": "chat"
+        },
+        {
+          "file": "/shots/modmail/staff-reply.png",
+          "caption": "Staff reply from the thread, optionally anonymous",
+          "kind": "chat"
+        },
+        {
+          "file": "/shots/modmail/transcript.png",
+          "caption": "Closed ticket archived as a transcript",
+          "kind": "list"
+        }
+      ]
     },
     {
       "name": "DiscMeet",
@@ -163,7 +180,24 @@
       },
       "released": "2026-06-27",
       "updated": "2026-10-22",
-      "license": "GPL-3.0-only"
+      "license": "GPL-3.0-only",
+      "shots": [
+        {
+          "file": "/shots/discmeet/meeting-notes.png",
+          "caption": "Structured notes posted after /summarize",
+          "kind": "card"
+        },
+        {
+          "file": "/shots/discmeet/transcript.png",
+          "caption": "Timed transcript, one line per speaker",
+          "kind": "list"
+        },
+        {
+          "file": "/shots/discmeet/expenses.png",
+          "caption": "Monthly total from /expense total",
+          "kind": "card"
+        }
+      ]
     },
     {
       "name": "Music Bot",
@@ -234,7 +268,24 @@
       },
       "released": "2026-10-23",
       "updated": "2026-10-29",
-      "license": "GPL-3.0-only"
+      "license": "GPL-3.0-only",
+      "shots": [
+        {
+          "file": "/shots/music-bot/now-playing.png",
+          "caption": "Now-playing card with its controls",
+          "kind": "card"
+        },
+        {
+          "file": "/shots/music-bot/live-lyrics.png",
+          "caption": "Live lyrics, current line in bold",
+          "kind": "card"
+        },
+        {
+          "file": "/shots/music-bot/queue.png",
+          "caption": "Queue view with shuffle and clear",
+          "kind": "list"
+        }
+      ]
     }
   ]
 }

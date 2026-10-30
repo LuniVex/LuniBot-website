@@ -1,9 +1,11 @@
 import "@fontsource-variable/inter/wght.css";
+import "lenis/dist/lenis.css";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
+import { Backdrop } from "@/components/Backdrop";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { MotionProvider } from "@/components/Motion";
+import { SmoothScroll } from "@/components/Motion";
 import { ThemeProvider } from "@/components/Theme";
 import { preview, site, siteUrl } from "@/lib/bots";
 
@@ -23,14 +25,21 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        {/* Hides entrance content until the page transition brings it in (see components/Motion.tsx). Skipped for reduced motion. */}
+        <script dangerouslySetInnerHTML={{ __html: `if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("motion")` }} />
+        {/* Reloads start at the top: the browser must not restore an old scroll position behind Lenis's back. */}
+        <script dangerouslySetInnerHTML={{ __html: `history.scrollRestoration="manual";if(!location.hash)scrollTo(0,0)` }} />
+      </head>
       <body>
         <ThemeProvider>
-          <MotionProvider>
-            <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-blue focus:px-4 focus:py-2 focus:text-white">Skip to content</a>
+          <SmoothScroll>
+            <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-ui focus:bg-blue focus:px-4 focus:py-2 focus:text-white">Skip to content</a>
+            <Backdrop />
             <Header />
             <main id="main">{children}</main>
             <Footer />
-          </MotionProvider>
+          </SmoothScroll>
         </ThemeProvider>
       </body>
     </html>
