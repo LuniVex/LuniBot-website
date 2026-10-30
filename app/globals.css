@@ -62,13 +62,14 @@
 html[data-journey-live] [data-stack-anchor] > svg { opacity: 0; transition: opacity 0.3s var(--ease); }
 
 /* The background system (components/Backdrop.tsx): LuniVex's moon with its hairline orbits and dial, and a
-   near dot field seen through a soft-edged window. Gradient functions here only draw dots, and masks fade
+   halftone loupe that follows the cursor: dot layers seen through nested soft-edged windows, and a rim. Gradient functions here only draw dots, and masks fade
    things out; they are never visible as colour. */
 /* The moon's orbits fade out with distance from it. */
 .orbits { mask-image: radial-gradient(circle closest-side, #000 30%, transparent 100%); }
 .lens { mask-image: radial-gradient(closest-side, #000 0%, transparent 100%); }
 .dots-field {
-  background-image: radial-gradient(circle at center, var(--line) 1.1px, transparent 1.6px);
+  /* One halftone layer: its dot radius comes from --dot, so the layers stack into dots that shrink outward. */
+  background-image: radial-gradient(circle at center, var(--line) var(--dot, 1.1px), transparent calc(var(--dot, 1.1px) + 0.5px));
   background-size: 16px 16px;
   background-position: 8px 8px;
 }

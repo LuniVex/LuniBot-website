@@ -59,6 +59,13 @@ Measured with a layout audit at 360, 768, 1440 and 1920 px (left edges against t
 | Tonight's dial tick was accent blue and turned with the scroll, landing on top of text beside the primary button | Longer tick in `--fg-3` | visual-directions: one accent per view |
 | 22 evenly spaced rings filled the screen | 6 orbits, spaced wider with distance | visual-directions: never fill space just because it is empty |
 
+## Cursor loupe
+| Change | Rule |
+|---|---|
+| The cursor's even dot window became a halftone: three dot layers on one fixed 16px grid, in nested soft windows, so dots swell toward the centre like light printed on paper (no glow, no colour) | visual-directions: texture barely there; anti-patterns: no glow, gradients only draw dots or mask |
+| A graduated rim (30 ticks, one longer ink index, echoing the moon's dial) follows on `hover`, ahead of the halftone on `drift`, so the light trails behind it | motion: springs; visual-directions: the moon motif |
+| The rim rolls with sideways movement exactly as a wheel of its radius would (dx / r), and tightens to 0.72 over links and buttons on `glide` | motion: transform only, springs; hidden on touch and reduced motion |
+
 ## Copy
 | Change | Rule |
 |---|---|
