@@ -19,7 +19,8 @@ Everything else is a **tint of ink on paper**, so the palette stays two neutrals
 | `--bg-alt` faint band | 2.5% | 6.5% | `bg-alt` |
 | `--accent-text` accent as text/links | accent mixed toward ink for contrast | accent mixed toward paper | `text-link` |
 
-Texture tints: `--texture` = line at 40% (the page grid); the pointer window's dots use the line tint itself. Tuned to be faint but actually visible in both themes.
+Texture tints: `--texture` = line at `--texture-strength` (55% light, 40% dark) for the orbits and dial. Tuned to be faint but actually visible in both themes; light mode needs more because hairlines read weaker on white.
+Moon fills: `--moon-lit` / `--moon-dark` = paper / bg-alt in light (an engraving: the unlit side is shaded), bg-alt / paper in dark.
 
 ## Radii
 One token: `--radius-ui: 4px` (Tailwind `rounded-ui`). Every surface and control uses it: cards, plates and
