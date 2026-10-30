@@ -51,6 +51,14 @@ Measured with a layout audit at 360, 768, 1440 and 1920 px (left edges against t
 | One persistent page grid: 48px hairlines in the texture tint (line at 28%), fixed, masked to fade out, drifting at 1/12 of scroll speed (transform, wraps per cell); replaces the old hero-only grid | visual-directions: texture barely there; motion: transform only |
 | Dot field behind each 3D object, with 40px of scroll parallax | visual-directions: texture; 3d-and-scroll |
 
+## Moon background fix (2.2.1)
+| Was wrong | Change | Rule |
+|---|---|---|
+| The moon's lit part was filled with `--tile`, the cards' colour: a heavy grey blob that swallowed card edges where they overlapped | Lit shape in `--bg-alt` with a `--line` hairline on its limb and terminator; the dark limb in the texture tint | visual-directions: texture barely there; color-and-tokens |
+| Waxing was a shadow disc sliding aside (a two-circle lune, not a phase) | The lit shape is `phasePath(phase)`, updated with the scroll: crescent at the top, full at the bottom | visual-directions: phases drawn exactly |
+| Tonight's dial tick was accent blue and turned with the scroll, landing on top of text beside the primary button | Longer tick in `--fg-3` | visual-directions: one accent per view |
+| 22 evenly spaced rings filled the screen | 6 orbits, spaced wider with distance | visual-directions: never fill space just because it is empty |
+
 ## Copy
 | Change | Rule |
 |---|---|
