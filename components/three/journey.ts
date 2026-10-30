@@ -1,17 +1,20 @@
 import {
-  BoxGeometry, BufferGeometry, Color, DoubleSide, EdgesGeometry, Group, Line, LineBasicMaterial, LineSegments, Matrix4,
+  BoxGeometry, BufferGeometry, Color, DoubleSide, EdgesGeometry, Euler, Group, Line, LineBasicMaterial, LineSegments, Matrix4,
   Mesh, MeshBasicMaterial, Object3D, OrthographicCamera, Quaternion, Scene, ShapeGeometry, Vector3,
 } from "three";
 import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader.js";
+import { buildModel, Outlines } from "./models";
 import { makeRenderer, type Palette } from "./shared";
 
 /**
  * The hub's 3D journey (skills/3d-and-scroll.md): one slab per bot, stacked in the hero, each carrying its
- * bot's mark on its top face. Scroll carries every slab from its place in the stack to its bot's card,
- * where it lands flat, face-on and exactly the size of the card's mark, and hands over to it.
+ * bot's mark on its top face. Scroll carries every slab from its place in the stack down into its bot's
+ * card, where it settles on the card's stage in a three-quarter view and the bot's model (models.ts) rises
+ * out of it: the drawing on the slab becomes the object. Once landed it stays, turning a little as its card
+ * passes through the screen.
  *
  * The camera is orthographic in CSS pixels over the whole viewport, so positions come straight from DOM
- * rectangles: the stack is drawn over the hero's anchor box, and each slab aims at its card's mark box,
+ * rectangles: the stack is drawn over the hero's anchor box, and each slab aims at its card's stage box,
  * read live every frame (so it lands correctly at any width and after the grid is filtered).
  */
 
@@ -21,14 +24,12 @@ export interface Frame {
   anchor: Box;
   /** 0..1 through the hero: turns and closes the stack. */
   hero: number;
-  /** Per slab: 0..1 of its trip, and the box of its card's mark (null if that card is hidden). */
+  /** Per slab: 0..1 of its trip, and the box of its card's stage (null if that card is hidden). */
   pieces: { travel: number; target: Box | null }[];
 }
 
 export interface Journey {
   draw(frame: Frame): void;
-  /** How visible each card's own mark should be (it takes over as its slab lands). */
-  handover(i: number): number;
   recolor(p: Palette): void;
   resize(width: number, height: number): void;
   dispose(): void;
@@ -39,7 +40,10 @@ const THICK = 0.16;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
-export function createJourney(canvas: HTMLCanvasElement, palette: Palette, marks: string[]): Journey | null {
+/** The landed pose: a three-quarter view from above, like the stack's, turned a little by where the card is on screen. */
+const LAND = { rx: 0.5, ry: -0.72, turn: 0.5 };
+
+export function createJourney(canvas: HTMLCanvasElement, palette: Palette, marks: string[], slugs: string[]): Journey | null {
   const renderer = makeRenderer(canvas);
   if (!renderer) return null;
   const scene = new Scene();
@@ -54,7 +58,8 @@ export function createJourney(canvas: HTMLCanvasElement, palette: Palette, marks
 
   // One slab per bot, built in stack units: footprint 2×2, top face at y = THICK/2 carrying the mark.
   const loader = new SVGLoader();
-  const pieces = marks.map((svg) => {
+  const outlines = new Outlines();
+  const pieces = marks.map((svg, n) => {
     const m: Mats = {
       face: new MeshBasicMaterial({ transparent: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }),
       edge: new LineBasicMaterial({ transparent: true }),
@@ -84,8 +89,11 @@ export function createJourney(canvas: HTMLCanvasElement, palette: Palette, marks
       const mat = cls.includes("as") ? m.accentLine : (style?.strokeOpacity ?? 1) < 1 ? m.quiet : m.edge;
       for (const sub of path.subPaths) face.add(new Line(new BufferGeometry().setFromPoints(sub.getPoints(48)), mat));
     }
+    // The bot's model stands on the top face, folded flat until the slab lands.
+    const model = buildModel(slugs[n] ?? "", m, outlines);
+    if (model) { model.position.y = THICK / 2; slab.add(model); }
     scene.add(slab);
-    return { slab, mats: m, handover: 0 };
+    return { slab, face, model, mats: m };
   });
 
   // Scratch objects for composing the stack pose and the landed pose.
@@ -94,8 +102,9 @@ export function createJourney(canvas: HTMLCanvasElement, palette: Palette, marks
   stack.add(slot);
   const from = { p: new Vector3(), q: new Quaternion(), s: new Vector3() };
   const to = { p: new Vector3(), q: new Quaternion(), s: new Vector3() };
-  const faceOn = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI / 2);
   const tmp = new Matrix4();
+  const euler = new Euler();
+  let viewH = 1;
 
   return {
     draw({ anchor, hero, pieces: trips }) {
@@ -116,37 +125,42 @@ export function createJourney(canvas: HTMLCanvasElement, palette: Palette, marks
         tmp.copy(slot.matrixWorld).decompose(from.p, from.q, from.s);
 
         let alpha = 1;
+        let rise = 0;
         if (trip.target && trip.target.w > 0) {
-          // Landed: centred on the card's mark, flat, face-on, its 2-unit face exactly the mark's width.
+          // Landed: centred on the card's stage and sized to it, in the three-quarter view. The model's
+          // visual centre is above the slab, so the slab sits a little below the stage's centre.
           const T = trip.target;
-          to.p.set(T.x + T.w / 2, -(T.y + T.h / 2), 0);
-          to.q.copy(faceOn);
-          to.s.set(T.w / FOOT, 0.02 * (T.w / FOOT), T.w / FOOT);
+          const k = Math.min(T.w / 3.3, T.h / 2.4);
+          const cy = T.y + T.h / 2;
+          to.p.set(T.x + T.w / 2, -(cy + 0.15 * k), 0);
+          to.q.setFromEuler(euler.set(LAND.rx, LAND.ry - LAND.turn * (cy / viewH - 0.5), 0));
+          to.s.setScalar(k);
           piece.slab.position.lerpVectors(from.p, to.p, t);
           piece.slab.quaternion.slerpQuaternions(from.q, to.q, t);
           piece.slab.scale.lerpVectors(from.s, to.s, t);
-          // The hand-over happens only once the slab is really there: within a few pixels of the mark's
-          // centre and almost face-on. Until then the card's mark stays hidden, so there is never a ghost.
-          const off = piece.slab.position.distanceTo(to.p);
-          const near = Math.min(1, Math.max(0, 1 - off / 6));
-          const flat = Math.min(1, Math.max(0, (t - 0.94) / 0.06));
-          piece.handover = near * flat;
-          alpha = 1 - piece.handover;
+          // The model rises out of the slab over the last part of the trip.
+          rise = smooth(Math.min(1, Math.max(0, (t - 0.55) / 0.45)));
         } else {
           // Its card is filtered out: the slab simply fades as it would have left.
           piece.slab.position.copy(from.p); piece.slab.quaternion.copy(from.q); piece.slab.scale.copy(from.s);
-          piece.handover = 0;
           alpha = 1 - t;
+        }
+        if (piece.model) {
+          piece.model.scale.y = Math.max(0.001, rise);
+          piece.model.visible = rise > 0.001;
+          piece.face.visible = rise < 0.35; // the mark on the slab gives way to the object it becomes
         }
         piece.slab.visible = alpha > 0.002;
         for (const mat of Object.values(piece.mats)) mat.opacity = alpha;
       });
+      scene.updateMatrixWorld(true);
+      outlines.update();
       renderer.render(scene, camera);
     },
-    handover: (i) => pieces[i]?.handover ?? 0,
     recolor(p) { allMats.forEach((m) => colorize(m, p)); },
     resize(w, h) {
       renderer.setSize(w, h, false);
+      viewH = h;
       camera.left = 0; camera.right = w; camera.top = 0; camera.bottom = -h;
       camera.updateProjectionMatrix();
     },

@@ -12,8 +12,8 @@ import { lowPower, readPalette } from "./three/shared";
  * while the pose is still easing. Reduced motion, low-power hints, no WebGL or a lost context: the
  * drawing stays.
  */
-export function ThreeStage({ kind, svg, track, start = "top bottom", end = "bottom top", fallback, className = "" }: {
-  kind: Kind; svg?: string | null; track?: string; start?: string; end?: string; fallback: React.ReactNode; className?: string;
+export function ThreeStage({ kind, slug, svg, track, start = "top bottom", end = "bottom top", fallback, className = "" }: {
+  kind: Kind; slug?: string; svg?: string | null; track?: string; start?: string; end?: string; fallback: React.ReactNode; className?: string;
 }) {
   const box = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -43,7 +43,7 @@ export function ThreeStage({ kind, svg, track, start = "top bottom", end = "bott
     const start3d = async () => {
       const { createStage } = await import("./three/objects");
       if (!alive) return;
-      stage = createStage(cv, kind, readPalette(), svg ?? undefined);
+      stage = createStage(cv, kind, readPalette(), { slug, svg: svg ?? undefined });
       if (!stage) return; // no WebGL: the drawing stays
       cv.addEventListener("webglcontextlost", lost);
       const fit = () => { const r = el.getBoundingClientRect(); stage?.resize(Math.max(1, Math.round(r.width)), Math.max(1, Math.round(r.height))); };
@@ -76,7 +76,7 @@ export function ThreeStage({ kind, svg, track, start = "top bottom", end = "bott
       cv.removeEventListener("webglcontextlost", lost);
       stop();
     };
-  }, [kind, svg, track, start, end]);
+  }, [kind, slug, svg, track, start, end]);
 
   return (
     <div ref={box} aria-hidden="true" data-stage={kind} data-live={live ? "" : undefined} className={`relative ${className}`}>

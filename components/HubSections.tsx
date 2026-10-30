@@ -3,9 +3,11 @@ import { fmtDate } from "@/lib/format";
 import { Terminal } from "./HeroFx";
 import { RevealChild, RevealGroup, Reveal } from "./Motion";
 import { body, SectionHead } from "./Sections";
+import { PackageDrawing } from "./PackageDrawing";
+import { ThreeStage } from "./ThreeStage";
 import { TotalDownloads } from "./Totals";
 
-/** 02 · The three steps every bot shares, then the same commands typed out in the terminal. */
+/** 02 · The three steps every bot shares, then the same commands typed out in the terminal, beside the zip as a box. */
 export function HowItWorks({ index, zip }: { index: string; zip: string }) {
   const steps = [
     { n: "1", title: "Download", text: "Pick a bot and download its zip. It's source code, and its page shows a SHA-256 checksum to check the file against.", cmd: `unzip ${zip}` },
@@ -16,18 +18,27 @@ export function HowItWorks({ index, zip }: { index: string; zip: string }) {
     <section className="px-5 pb-16 md:pb-24">
       <div className="mx-auto max-w-page">
         <SectionHead index={index} label="How it works" title="Three steps, every bot" />
-        <RevealGroup className={`mt-10 grid gap-x-10 gap-y-8 md:grid-cols-3 ${body}`}>
-          {steps.map((s) => (
-            <RevealChild key={s.n} className="border-t border-line/70 pt-5">
-              <p className="t-small font-mono text-fg-3">{s.n}</p>
-              <h3 className="t-h3 mt-2">{s.title}</h3>
-              <p className="mt-2 text-fg-2">{s.text}</p>
-            </RevealChild>
-          ))}
-        </RevealGroup>
-        <Reveal className={`mt-12 ${body}`}>
-          <Terminal lines={steps.map((s, i) => (i === 1 ? { cmd: s.cmd, note: "add your bot token" } : { cmd: s.cmd }))} />
-        </Reveal>
+        <div className="mt-10 md:grid md:grid-cols-[10rem_minmax(0,1fr)]">
+          {/* The zip as a box, held in the index column: it opens as you read the steps and lifts the token out. */}
+          <div className="hidden md:block">
+            <ThreeStage kind="package" track="#how" start="top 75%" end="bottom 60%" className="sticky top-28 -ml-8 size-40"
+              fallback={<PackageDrawing />} />
+          </div>
+          <div>
+            <RevealGroup className="grid gap-x-10 gap-y-8 md:grid-cols-3">
+              {steps.map((s) => (
+                <RevealChild key={s.n} className="border-t border-line/70 pt-5">
+                  <p className="t-small font-mono text-fg-3">{s.n}</p>
+                  <h3 className="t-h3 mt-2">{s.title}</h3>
+                  <p className="mt-2 text-fg-2">{s.text}</p>
+                </RevealChild>
+              ))}
+            </RevealGroup>
+            <Reveal className="mt-12">
+              <Terminal lines={steps.map((s, i) => (i === 1 ? { cmd: s.cmd, note: "add your bot token" } : { cmd: s.cmd }))} />
+            </Reveal>
+          </div>
+        </div>
       </div>
     </section>
   );

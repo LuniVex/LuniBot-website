@@ -103,9 +103,9 @@ export default async function BotPage({ params }: Props) {
           <div className="mx-auto max-w-page">
             <SectionHead index={n("Features")} label="Features" title="What it does" />
             <div className="mt-10 md:grid md:grid-cols-[10rem_minmax(0,1fr)]">
-              {/* The bot's mark as a layered 3D object, held beside the list and turned by scroll. */}
+              {/* The bot's model on its plinth, held beside the list and turned by scroll. */}
               <div className="hidden md:block">
-                <ThreeStage kind="mark" svg={getMark(bot.slug)} className="sticky top-28 -ml-8 size-40"
+                <ThreeStage kind="model" slug={bot.slug} svg={getMark(bot.slug)} className="sticky top-28 -ml-8 size-40"
                   fallback={<div className="grid size-full place-items-center"><Mark svg={getMark(bot.slug)} name={bot.name} size={128} /></div>} />
               </div>
             <RevealGroup className="grid gap-x-10 md:grid-cols-2">

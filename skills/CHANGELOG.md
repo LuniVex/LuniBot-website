@@ -74,6 +74,15 @@ Measured with a layout audit at 360, 768, 1440 and 1920 px (left edges against t
 | Light mode shaded the moon backwards (lit side grey), so the full moon was a grey blob behind text | `--moon-lit` / `--moon-dark`: in light the lit side is paper and the unlit side is tinted | color-and-tokens |
 | Light-mode orbits almost invisible | `--texture-strength` 55% in light, 40% in dark | color-and-tokens: visible in both themes |
 
+## Cards and models
+| Was wrong | Change | Rule |
+|---|---|---|
+| Cards were heavy grey tiles; the featured card's stand-in screenshot left a large empty area | Paper cards framed by a hairline, each with a stage (faint `bg-alt` band, corner registration marks) for the bot as an object; specs as a labelled row; Details on the right of the action row | visual-directions: hairline structure; negative space |
+| "Upvoted" filled blue beside the blue Download button: two accents in one card | A standing vote is an ink outline with a filled arrow | visual-directions: one accent per component |
+| Empty download months drew a dashed row of 1px stubs | Days with none draw nothing; the row is one line with the bars running between label and total | anti-patterns: nothing there only to look busy |
+| The hero slabs landed flat and vanished into a small mark | They land on the card's stage in a three-quarter view and the bot's model rises out of them and stays | 3d-and-scroll: one system in view |
+| One 3D object on the site beyond the hero | Bot models (`models.ts`) on bot pages; the How it works box, which opens and lifts out the token as you read the steps, with a static drawing twin (`PackageDrawing`) | 3d-and-scroll: 3D explains the thing beside it; fallbacks |
+
 ## Copy
 | Change | Rule |
 |---|---|

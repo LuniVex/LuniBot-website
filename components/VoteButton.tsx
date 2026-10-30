@@ -9,7 +9,8 @@ import { Count } from "./Count";
 
 /**
  * One upvote per visitor, stored on the server; press again to take it back. The count comes from the
- * page's shared figures, updates instantly, and rolls back if the server refuses.
+ * page's shared figures, updates instantly, and rolls back if the server refuses. A standing vote shows as
+ * an ink outline and a filled arrow, not a fill: the accent stays on the one primary action beside it.
  */
 export function VoteButton({ slug, size = "md" }: { slug: string; size?: "md" | "lg" }) {
   const { data, failed } = useStats(slug);
@@ -46,7 +47,7 @@ export function VoteButton({ slug, size = "md" }: { slug: string; size?: "md" | 
     <span className="inline-flex flex-col items-center gap-1">
       <button type="button" onClick={toggle} disabled={!v} aria-pressed={voted} aria-busy={saving}
         className={`smooth inline-flex items-center gap-2 rounded-ui border disabled:opacity-50 ${size === "lg" ? "min-h-12 px-6 t-control-lg" : "min-h-9 px-4 t-control"} ${
-          voted ? "border-blue bg-blue text-white enabled:hover:bg-blue-hover" : "border-line text-fg enabled:hover:border-fg-3"}`}>
+          voted ? "border-fg text-fg" : "border-line text-fg enabled:hover:border-fg-3"}`}>
         <svg ref={arrow} viewBox="0 0 12 12" aria-hidden="true" className="size-3">
           <path d="M6 1.75 10.75 10H1.25z" fill={voted ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
         </svg>
