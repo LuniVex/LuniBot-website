@@ -17,6 +17,7 @@ San Francisco on Apple devices, self-hosted Inter Variable elsewhere (`--font-sa
 | `t-tiny` | 12px | 1.33 | chart labels, terminal title |
 | `t-figure` | 40px | 1 | big numbers in stats |
 | `t-mono` | 14px mono | 1.5 | commands, file names, code |
+| `t-label` | 11px mono, tracking 0.14em, capitals | 1.45 | lunar index markers only: days (D01–D30) and phase words |
 | `t-control` / `t-control-lg` | 15px / 17px | 1.33 / 1.3 | text inside buttons, inputs and segmented controls |
 Nothing outside this table; no ad hoc `text-[NNpx]` in components.
 
@@ -25,4 +26,5 @@ Nothing outside this table; no ad hoc `text-[NNpx]` in components.
 - Line length: body and lead 45–75 characters (`max-w-[60ch]` body, `max-w-[38ch]` lead, `max-w-[30ch]` card taglines).
 - No orphans: headings use `text-wrap: balance`, paragraphs `text-wrap: pretty`; product names and versions never break (`GPL‑3.0` uses a non-breaking hyphen in running copy).
 - Numbers that change or compare are `tabular-nums`.
-- Sentence case everywhere. No all-caps except the 3-letter UTC/SHA style abbreviations.
+- Sentence case everywhere. No all-caps except the 3-letter UTC/SHA style abbreviations and `t-label`
+  (the lunar index: "D08 · Quarter", "Full moon"), which is wide-tracked like an engraved scale.

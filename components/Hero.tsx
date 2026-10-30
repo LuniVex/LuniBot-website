@@ -1,8 +1,9 @@
 import { More, Pill } from "./Button";
 import { Headline } from "./Headline";
-import { Crescent } from "./Moon";
+import { Crescent, MomentLabel } from "./Moon";
 import { Enter } from "./Motion";
 import { StackDrawing } from "./StackDrawing";
+import { OPENING } from "@/lib/moon";
 
 /**
  * The hero, split 5:4 on the grid. Left: the headline, one plain sentence and the two actions. Right: the
@@ -11,10 +12,10 @@ import { StackDrawing } from "./StackDrawing";
  */
 export function Hero({ marks }: { marks: (string | null)[] }) {
   return (
-    <section data-hero="" className="px-5 pb-16 pt-24 md:pb-24 md:pt-28">
+    <section data-hero="" data-moment={OPENING} className="px-5 pb-16 pt-24 md:pb-24 md:pt-28">
       <div className="mx-auto grid max-w-page items-center gap-x-10 gap-y-12 md:min-h-[calc(100svh-15rem)] md:grid-cols-[5fr_4fr]">
         <div>
-          <Enter><p className="t-small mb-6 flex items-center gap-2 font-mono text-fg-3"><Crescent size={14} className="text-fg-2" />LuniVex · LuniBot</p></Enter>
+          <Enter><p className="t-small mb-6 flex items-center gap-2 font-mono text-fg-3"><Crescent size={14} className="text-fg-2" />LuniVex · LuniBot<MomentLabel phase={OPENING} className="ml-3" /></p></Enter>
           <Headline text="Discord bots you run yourself." className="t-hero max-w-[12ch]" />
           <Enter>
             <p className="t-lead mt-6 max-w-[30ch] text-fg-2">

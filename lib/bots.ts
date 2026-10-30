@@ -1,4 +1,5 @@
 import data from "@/data/bots.json";
+import type { BotPhase } from "./moon";
 
 export type BotStatus = "active" | "beta" | "archived";
 
@@ -24,6 +25,11 @@ export interface Bot {
   updated: string;
   license: string;
   /**
+   * The bot's place in the lunar cycle, shown as its badge. Phases follow one rule: how much of the
+   * bot's work stays on your own machine (full: all of it; new: not released yet). `reason` says why.
+   */
+  lunar: { phase: BotPhase; reason: string };
+  /**
    * Screenshots, shown as framed plates. Put each file under public/ at the path given (PNG at 2x,
    * 1600×1000, 16:10). Until a file exists, its plate shows a drawing of what it will show.
    */
@@ -39,7 +45,7 @@ export interface Bot {
 export interface Shot { file: string; caption: string; kind: "chat" | "card" | "list" }
 
 export const site = data.site;
-export const bots = data.bots as Bot[];
+export const bots = data.bots as unknown as Bot[];
 
 export const getBot = (slug: string) => bots.find((b) => b.slug === slug);
 export const allTags = () => [...new Set(bots.flatMap((b) => b.tags))].sort();

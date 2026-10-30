@@ -83,6 +83,21 @@ Measured with a layout audit at 360, 768, 1440 and 1920 px (left edges against t
 | The hero slabs landed flat and vanished into a small mark | They land on the card's stage in a three-quarter view and the bot's model rises out of them and stays | 3d-and-scroll: one system in view |
 | One 3D object on the site beyond the hero | Bot models (`models.ts`) on bot pages; the How it works box, which opens and lifts out the token as you read the steps, with a static drawing twin (`PackageDrawing`) | 3d-and-scroll: 3D explains the thing beside it; fallbacks |
 
+## The moon as the system
+| Change | Rule |
+|---|---|
+| Every page is half a lunation: the hero opens on a young crescent (`OPENING`, D05) and each numbered section is a "moment" one equal step further, ending full (D15) at the last section (`momentPhase`, lib/moon.ts) | visual-directions: the moon is the system |
+| The background moon's phase is driven by the moments, not raw scroll progress: it holds while you read a section and sweeps as the next head comes up, over the same stretch as that head's glyph; reversible | motion: scroll is the only clock |
+| Section boundaries: the hairline rule is drawn left to right and the head's phase glyph sweeps from the previous phase (terminator crossing), both scrubbed; no fades | motion: transform only, scrub |
+| Lunar index labels: `t-label` (wide-tracked mono capitals) for "D08 · Quarter" under each section index, the hero eyebrow, badges and the dial | typography: the one uppercase style |
+| A starry night behind the moon (`Starfield`): flat ink dots at three depths, scroll parallax, pointer lean, gentle twinkle, hairline rays on bright stars, faint star-chart lines; a printed star chart in light mode. Asked for by the owner; anti-patterns updated to allow this one starfield | visual-directions: night sky |
+| Tonight's moon stays in the footer only (a dial in Updates was tried and removed at the owner's request) | — |
+| Real phase maths: new and full moon times from Meeus (Astronomical Algorithms ch. 49), checked against the published 2026 dates to the minute | — |
+| Engraving hatch (`.hatch`, `--hatch`): on the card stages, the unlit side of the background moon and the dial's moon, and under the cursor's focus window, where it stays fixed while the window moves. Strong enough to read in light (an engraved plate), almost gone in dark (night sky) | visual-directions: texture barely there |
+| Orbits at six depths: each leans and drifts with scroll by its own amount (parallax), relative to the moon | 3d-and-scroll: depth from layering and parallax |
+| Bot phases (`lunar` in data/bots.json): how much of the bot's work stays on your machine. Modmail full, DiscMeet gibbous, Music Bot crescent, the coming-soon card new. Badge on each card's stage and the bot page; the reason under Good to know | visual-directions: bot identities |
+| One diagram everywhere: the LuniVex mark is the moon at the opening phase, its orbit and the dial's index tick for that phase (header, footer, favicon); the theme toggle sweeps the same diagram from crescent (dark) to full (light); the loading state runs it through a lunation | visual-directions: the motif |
+
 ## Copy
 | Change | Rule |
 |---|---|

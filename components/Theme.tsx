@@ -3,7 +3,8 @@ import { ThemeProvider as NextThemes, useTheme } from "next-themes";
 import { useRef, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
 import { easeCss, reducedMotion, spring, springs, useGSAP } from "@/lib/motion";
-import { phasePath } from "@/lib/moon";
+import { OPENING, phasePath } from "@/lib/moon";
+import { onDial } from "./Moon";
 import type { Spring } from "@/lib/spring";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -12,7 +13,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 type StartViewTransition = (update: () => void) => { ready: Promise<void> };
 
-/** Light/dark switch. The new theme spreads out from the button as a growing circle; the icon turns as it changes. */
+/**
+ * Light/dark switch, drawn as the LuniVex moon diagram (components/Moon.tsx `Crescent`). Night is the
+ * opening crescent, day the full moon: on each switch the terminator sweeps between them on the `release`
+ * spring and the dial's index tick travels with it, while the new theme spreads out from the button.
+ */
+const DAY_PHASE = 0.5;
+const drawIcon = (svg: SVGSVGElement | null, phase: number) => {
+  if (!svg) return;
+  svg.querySelector("[data-lit]")?.setAttribute("d", phasePath(phase, 6.5));
+  const [x1, y1] = onDial(phase, 9), [x2, y2] = onDial(phase, 12);
+  const tick = svg.querySelector("[data-tick]");
+  tick?.setAttribute("x1", x1.toFixed(2)); tick?.setAttribute("y1", y1.toFixed(2));
+  tick?.setAttribute("x2", x2.toFixed(2)); tick?.setAttribute("y2", y2.toFixed(2));
+};
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const icon = useRef<SVGSVGElement>(null);
@@ -20,10 +34,10 @@ export function ThemeToggle() {
   const dark = mounted && resolvedTheme === "dark";
   const turn = useRef<Spring | null>(null);
   useGSAP(() => {
-    const rotate = dark ? 180 : 0;
-    // Snap on first paint; after that the half-moon turns on the `release` spring, with a little give.
-    if (!turn.current) { turn.current = spring(icon.current!, "rotate", springs.release, { from: rotate, eps: 0.05 }); turn.current.set(rotate); }
-    else if (mounted) turn.current.to(rotate);
+    const phase = !mounted || dark ? OPENING : DAY_PHASE;
+    // Snap on first paint; after that the phase sweeps on the `glide` spring (no overshoot past full).
+    if (!turn.current) { turn.current = spring((v) => drawIcon(icon.current, v), "phase", springs.glide, { from: phase, eps: 0.001 }); turn.current.set(phase); }
+    else if (mounted) turn.current.to(phase);
   }, { dependencies: [dark, mounted] });
 
   function toggle(e: React.MouseEvent<HTMLButtonElement>) {
@@ -47,10 +61,11 @@ export function ThemeToggle() {
   return (
     <button type="button" onClick={toggle} aria-label={dark ? "Switch to light appearance" : "Switch to dark appearance"}
       className="smooth grid size-9 place-items-center rounded-ui text-fg-2 hover:bg-tile hover:text-fg">
-      <svg ref={icon} viewBox="0 0 16 16" aria-hidden="true" className="size-[17px]">
-        {/* The LuniVex crescent: the toggle turns it half a revolution on each switch. */}
-        <circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.45" />
-        <path transform="translate(8 8)" d={phasePath(0.2, 6.4)} fill="currentColor" />
+      <svg ref={icon} viewBox="-12 -12 24 24" aria-hidden="true" className="size-[19px] overflow-visible">
+        <circle r="10.5" fill="none" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" opacity="0.3" />
+        <line data-tick="" x1={onDial(OPENING, 9)[0]} y1={onDial(OPENING, 9)[1]} x2={onDial(OPENING, 12)[0]} y2={onDial(OPENING, 12)[1]} stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+        <circle r="6.5" fill="none" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" opacity="0.45" />
+        <path data-lit="" d={phasePath(OPENING, 6.5)} fill="currentColor" />
       </svg>
     </button>
   );

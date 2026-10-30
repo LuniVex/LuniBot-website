@@ -37,6 +37,8 @@
   .t-body-lg { font-size: 1.1875rem; line-height: 1.45; letter-spacing: -0.01em; }
   .t-figure  { font-size: 2.5rem; line-height: 1; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
   .t-mono    { font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.5; letter-spacing: 0; }
+  /* Lunar index markers (D01–D30, phase words): the one uppercase style, wide-tracked like an engraved scale. */
+  .t-label   { font-family: var(--font-mono); font-size: 0.6875rem; line-height: 1.45; letter-spacing: 0.14em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
   .t-control    { font-size: 0.9375rem; line-height: 1.33; }
   .t-control-lg { font-size: 1.0625rem; line-height: 1.3; }
 
@@ -68,6 +70,12 @@ html[data-journey-live] [data-journey] > * { opacity: 0; transition: opacity 0.3
    only mask things so they fade out; they are never visible as colour. */
 /* The moon's orbits fade out with distance from it. */
 .orbits { mask-image: radial-gradient(circle closest-side, #000 30%, transparent 100%); }
+/* Engraving hatch: hairlines at 45° on a 10px tile, so a layer can be shifted by whole tiles and the lines
+   stay put on the page. A gradient here only draws the hairline; it is never visible as colour. */
+.hatch {
+  background-image: linear-gradient(45deg, transparent calc(50% - 0.5px), var(--hatch) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+  background-size: 10px 10px;
+}
 /* The focus window: strongest at the cursor, gone well before its edge. */
 .focus { mask-image: radial-gradient(circle closest-side, #000 0%, rgb(0 0 0 / 0.55) 35%, transparent 100%); }
 

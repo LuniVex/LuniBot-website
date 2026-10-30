@@ -93,6 +93,10 @@
       "released": "2026-07-01",
       "updated": "2026-10-22",
       "license": "GPL-3.0-only",
+      "lunar": {
+        "phase": "full",
+        "reason": "Everything it does stays on your machine and in your Discord. It sends nothing to any other service, so the whole disc is lit."
+      },
       "shots": [
         {
           "file": "/shots/modmail/ticket-thread.png",
@@ -181,6 +185,10 @@
       "released": "2026-06-27",
       "updated": "2026-10-22",
       "license": "GPL-3.0-only",
+      "lunar": {
+        "phase": "gibbous",
+        "reason": "It records, writes and posts the notes from your machine, but the audio goes to OpenAI to be transcribed and summarised. One part of the work happens elsewhere."
+      },
       "shots": [
         {
           "file": "/shots/discmeet/meeting-notes.png",
@@ -269,6 +277,10 @@
       "released": "2026-10-23",
       "updated": "2026-10-29",
       "license": "GPL-3.0-only",
+      "lunar": {
+        "phase": "crescent",
+        "reason": "It runs and controls playback on your machine, but the music, searches and lyrics all come from outside services. Most of what you hear is lit from elsewhere."
+      },
       "shots": [
         {
           "file": "/shots/music-bot/now-playing.png",

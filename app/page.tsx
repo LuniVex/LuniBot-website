@@ -9,7 +9,7 @@ import { fmtSize } from "@/lib/format";
 import { getMark } from "@/lib/marks";
 
 /**
- * The hub, in one order: the hero; 01 the bots (the hero's 3D stack travels into their cards); 02 how it
+ * The hub, in one order (and one half-lunation: each section is a moment, see components/Sections.tsx): the hero; 01 the bots (the hero's 3D stack travels into their cards); 02 how it
  * works; 03 latest updates and the plain facts; 04 the one call to action; then the footer.
  */
 export default function Hub() {
@@ -30,14 +30,14 @@ export default function Hub() {
       <StackJourney slugs={slugs} marks={marks.map((m) => m ?? "")} />
       <section id="bots" className="scroll-mt-14 px-5 pb-16 md:pb-24">
         <div className="mx-auto max-w-page">
-          <SectionHead index="01" label="Bots" title="Pick a bot" note="Each one is a zip of source code with a GPL‑3.0 licence. Free, and no account." />
+          <SectionHead index="01" of={4} label="Bots" title="Pick a bot" note="Each one is a zip of source code with a GPL‑3.0 licence. Free, and no account." />
           <div className="mt-10">
             <BotGallery entries={entries} featured={featured} soonMark={getMark("soon")} />
           </div>
         </div>
       </section>
-      <div id="how" className="scroll-mt-14"><HowItWorks index="02" zip={zip} /></div>
-      <LatestUpdates index="03" />
+      <div id="how" className="scroll-mt-14"><HowItWorks index="02" of={4} zip={zip} /></div>
+      <LatestUpdates index="03" of={4} />
       <DiscordCta index="04" />
     </>
   );

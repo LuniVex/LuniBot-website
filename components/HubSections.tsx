@@ -8,7 +8,7 @@ import { ThreeStage } from "./ThreeStage";
 import { TotalDownloads } from "./Totals";
 
 /** 02 · The three steps every bot shares, then the same commands typed out in the terminal, beside the zip as a box. */
-export function HowItWorks({ index, zip }: { index: string; zip: string }) {
+export function HowItWorks({ index, of, zip }: { index: string; of: number; zip: string }) {
   const steps = [
     { n: "1", title: "Download", text: "Pick a bot and download its zip. It's source code, and its page shows a SHA-256 checksum to check the file against.", cmd: `unzip ${zip}` },
     { n: "2", title: "Add your token", text: "Copy the example settings and paste in your Discord bot token. If a bot needs a key for another service, its page says which.", cmd: "cp .env.example .env" },
@@ -17,7 +17,7 @@ export function HowItWorks({ index, zip }: { index: string; zip: string }) {
   return (
     <section className="px-5 pb-16 md:pb-24">
       <div className="mx-auto max-w-page">
-        <SectionHead index={index} label="How it works" title="Three steps, every bot" />
+        <SectionHead index={index} of={of} label="How it works" title="Three steps, every bot" />
         <div className="mt-10 md:grid md:grid-cols-[10rem_minmax(0,1fr)]">
           {/* The zip as a box, held in the index column: it opens as you read the steps and lifts the token out. */}
           <div className="hidden md:block">
@@ -65,7 +65,7 @@ function timeline(list: Bot[]): Event[] {
 }
 
 /** 03 · What changed lately, from the bots' own dates, beside the plain facts about every download. */
-export function LatestUpdates({ index }: { index: string }) {
+export function LatestUpdates({ index, of }: { index: string; of: number }) {
   const events = timeline(bots);
   const facts: [string, React.ReactNode][] = [
     ["Bots", bots.length],
@@ -76,7 +76,7 @@ export function LatestUpdates({ index }: { index: string }) {
   return (
     <section className="px-5 pb-16 md:pb-24">
       <div className="mx-auto max-w-page">
-        <SectionHead index={index} label="Updates" title="Latest updates" />
+        <SectionHead index={index} of={of} label="Updates" title="Latest updates" />
         <div className={`mt-10 grid gap-x-10 gap-y-12 md:grid-cols-[minmax(0,1fr)_14rem] ${body}`}>
           <RevealGroup>
             <ol className="border-b border-line/70">

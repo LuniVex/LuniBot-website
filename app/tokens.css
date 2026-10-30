@@ -49,11 +49,20 @@
   --texture-strength: 55%;
   --moon-lit: var(--paper);
   --moon-dark: var(--bg-alt);
+  /* Engraving hatch (fine parallel hairlines): the light theme's plate shading. */
+  --hatch: color-mix(in srgb, var(--line) 55%, transparent);
+  /* Moons drawn as UI (the dial, badges) at full size: lit side paper, the unlit side hatched. */
+  --moon-ui-lit: var(--paper);
+  --moon-ui-dark: var(--bg-alt);
 }
 .dark {
   --texture-strength: 40%;
   --moon-lit: var(--bg-alt);
   --moon-dark: var(--paper);
+  /* Night sky: the hatch all but disappears, so dark areas stay dark. */
+  --hatch: color-mix(in srgb, var(--line) 24%, transparent);
+  --moon-ui-lit: color-mix(in srgb, var(--ink) 30%, var(--paper));
+  --moon-ui-dark: var(--paper);
 }
 
 @theme {

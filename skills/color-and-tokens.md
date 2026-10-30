@@ -21,6 +21,8 @@ Everything else is a **tint of ink on paper**, so the palette stays two neutrals
 
 Texture tints: `--texture` = line at `--texture-strength` (55% light, 40% dark) for the orbits and dial. Tuned to be faint but actually visible in both themes; light mode needs more because hairlines read weaker on white.
 Moon fills: `--moon-lit` / `--moon-dark` = paper / bg-alt in light (an engraving: the unlit side is shaded), bg-alt / paper in dark.
+Moons drawn as UI at reading size (the dial): `--moon-ui-lit` / `--moon-ui-dark` = paper / bg-alt in light, ink 30% / paper in dark.
+Engraving hatch: `--hatch` = line at 55% in light, 24% in dark (night sky), drawn by `.hatch` (45°, 10px tile) or an SVG pattern.
 
 ## Radii
 One token: `--radius-ui: 4px` (Tailwind `rounded-ui`). Every surface and control uses it: cards, plates and

@@ -11,6 +11,7 @@ import { More, pill } from "./Button";
 import { Count } from "./Count";
 import { DownloadButton } from "./DownloadButton";
 import { Mark } from "./Mark";
+import { PhaseBadge } from "./Moon";
 import { Appear, Assemble, finishAssemblies } from "./Motion";
 import { VoteButton } from "./VoteButton";
 
@@ -166,18 +167,20 @@ function Corners() {
 }
 
 /**
- * The card's stage: a faint band with corner marks where the bot is shown as an object. The hub's 3D
+ * The card's stage: a faint band, engraved with hairline hatching, with corner marks and the bot's phase
+ * badge (its place in the lunar cycle, data/bots.json `lunar`), where the bot is shown as an object. The hub's 3D
  * journey lands the bot's slab here and raises its model out of it (components/three/journey.ts); until
  * then, and wherever 3D doesn't run, the bot's mark is drawn here large. `[data-journey]` is the box the
  * 3D aims at, and its contents step aside once the 3D is live (app/globals.css).
  */
-function Stage({ slug, mark, name, index, note, featured }: { slug: string; mark: string | null; name: string; index: string; note?: string; featured: boolean }) {
+function Stage({ slug, mark, name, index, note, featured, phase }: { slug: string; mark: string | null; name: string; index: string; note?: string; featured: boolean; phase: Bot["lunar"]["phase"] }) {
   return (
-    <div className={`relative bg-alt ${featured ? "min-h-72 border-b border-line md:order-last md:min-h-0 md:border-b-0 md:border-l" : "aspect-[16/10] border-b border-line"}`}>
+    <div className={`hatch relative bg-alt ${featured ? "min-h-72 border-b border-line md:order-last md:min-h-0 md:border-b-0 md:border-l" : "aspect-[16/10] border-b border-line"}`}>
       <Corners />
       <p data-meta="" className="smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2 t-tiny absolute left-6 top-5 font-mono text-fg-3 tabular-nums">
         {index}{note && <span className="ml-3">{note}</span>}
       </p>
+      <PhaseBadge phase={phase} className="absolute right-6 top-5" />
       <div data-journey={slug} className="absolute inset-x-6 bottom-6 top-12 grid place-items-center">
         <Mark svg={mark} name={name} size={featured ? 128 : 96} />
       </div>
@@ -203,7 +206,7 @@ const Tile = memo(function Tile({ bot, size, index, mark, featured }: Entry & { 
     <article ref={ref} className="group/card relative h-full" {...handlers}>
       <div data-lift="" data-press="0.985" className={`relative h-full overflow-hidden will-change-transform rounded-ui border border-line bg-bg ${featured ? "grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]" : "flex flex-col"}`}>
         <span data-hair="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 rounded-ui border border-fg-3 opacity-0" />
-        <Stage slug={bot.slug} mark={mark} name={bot.name} index={index} note={featured ? "Newest" : undefined} featured={featured} />
+        <Stage slug={bot.slug} mark={mark} name={bot.name} index={index} note={featured ? "Newest" : undefined} featured={featured} phase={bot.lunar.phase} />
         <div className={`flex flex-1 flex-col ${featured ? "p-8 md:p-10" : "p-8"}`}>
           <p data-meta="" className={`${meta} t-small font-mono text-fg-3`}><span className="capitalize">{bot.status}</span> · {bot.language} · {licenseInfo(bot.license).short}</p>
           <h3 className={`mt-2 ${featured ? "t-section" : "t-tile"}`}>
@@ -238,7 +241,10 @@ const Tile = memo(function Tile({ bot, size, index, mark, featured }: Entry & { 
   );
 });
 
-/** The last row: more bots are coming. It points to the one Discord call to action rather than repeating it. */
+/**
+ * The last row: more bots are coming. Its phase is the new moon: there, but not yet lit. It points to the one
+ * Discord call to action rather than repeating it.
+ */
 const Soon = memo(function Soon({ mark }: { mark: string | null }) {
   const { ref, handlers } = useCardHover();
   return (
@@ -249,6 +255,7 @@ const Soon = memo(function Soon({ mark }: { mark: string | null }) {
         <Mark svg={mark} name="More" size={56} optical className="text-fg-2" />
         <div className="md:flex-1">
           <p data-meta="" className="smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2 t-small font-mono text-fg-3">Coming soon</p>
+          <PhaseBadge phase="new" className="mt-1" />
           <h3 className="t-tile mt-1">More bots</h3>
           <p className="t-body-lg mt-2 max-w-[40ch] text-fg-2">New ones are in the works. Ideas go in the Discord, at the end of this page.</p>
         </div>

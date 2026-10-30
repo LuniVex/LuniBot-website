@@ -46,6 +46,16 @@ Press depth: 0.965 for controls; surfaces set their own with `data-press` (cards
   (time-based, ≈12% per frame at 60fps); the background follows on `drift`. Linear mapping is allowed only
   inside a ScrollTrigger *scrub*, where the scrub lag supplies the easing.
 
+## The lunar spine
+- The background moon's phase follows the page's moments (`data-moment`), not raw progress: it holds through
+  a section and sweeps to the next phase while that section's head goes from 92% to 62% of the screen
+  (`SWEEP`, components/Moment.tsx), on the `drift` spring.
+- Over the same stretch the head's rule draws in (scaleX) and its glyph's terminator sweeps, scrubbed
+  (`scrub: 0.6`), so both reverse on the way back up.
+- Orbits sit at six depths and lean/drift by their own amounts. The theme toggle's phase moves on `glide`.
+- Reduced motion: no sweeps (rules drawn, glyphs at their phase), the background still, its phase set to the
+  section you're in.
+
 ## Rules
 - **Transform and opacity only** (plus clip-path for plate wipes and drawSVG for mark strokes). Sliding
   highlights move with x and scaleX of a fixed 100px element, never width.

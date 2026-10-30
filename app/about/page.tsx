@@ -3,6 +3,7 @@ import { Headline } from "@/components/Headline";
 import { Enter, Reveal } from "@/components/Motion";
 import { body, DiscordCta, SectionHead } from "@/components/Sections";
 import { bots, preview, site } from "@/lib/bots";
+import { OPENING } from "@/lib/moon";
 import { licenseInfo } from "@/lib/license";
 
 export const metadata: Metadata = preview(
@@ -18,7 +19,7 @@ function Part({ id, index, label, title, children }: { id: string; index: string
   return (
     <section id={id} className="scroll-mt-14 px-5 pb-16 md:pb-24">
       <div className="mx-auto max-w-page">
-        <SectionHead index={index} label={label} title={title} />
+        <SectionHead index={index} of={5} label={label} title={title} />
         <Reveal className={`mt-8 t-body-lg flex max-w-[calc(60ch+10rem)] flex-col gap-5 text-fg-2 ${body}`}>{children}</Reveal>
       </div>
     </section>
@@ -29,7 +30,7 @@ export default function About() {
   const external = bots.filter((b) => b.telemetry !== "none");
   return (
     <>
-      <section className="px-5 pb-16 pt-32 md:pb-24 md:pt-40">
+      <section data-moment={OPENING} className="px-5 pb-16 pt-32 md:pb-24 md:pt-40">
         <div className="mx-auto max-w-page">
           <Headline text="About LuniBot" className="t-hero max-w-[16ch]" />
           <Enter><p className="t-lead mt-6 max-w-[38ch] text-fg-2">What the site is, what it counts, how to check a download, and how the bots are licensed.</p></Enter>
