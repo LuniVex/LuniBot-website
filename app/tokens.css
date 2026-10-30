@@ -39,7 +39,21 @@
   --blue-hover: color-mix(in srgb, var(--accent) 90%, var(--ink));
   --link: var(--accent-text);
   /* Background texture (grids, dots): the hairline tint at low strength. */
-  --texture: color-mix(in srgb, var(--line) 40%, transparent);
+  --texture: color-mix(in srgb, var(--line) var(--texture-strength), transparent);
+}
+
+/* Background strength and the moon's two fills. Light mode draws the moon like an engraving: the lit side
+   is the paper and the unlit side takes the faint tint, and its lines are a little stronger so they read on
+   white. Dark mode is the other way round: the lit side is the lighter tint. */
+:root {
+  --texture-strength: 55%;
+  --moon-lit: var(--paper);
+  --moon-dark: var(--bg-alt);
+}
+.dark {
+  --texture-strength: 40%;
+  --moon-lit: var(--bg-alt);
+  --moon-dark: var(--paper);
 }
 
 @theme {

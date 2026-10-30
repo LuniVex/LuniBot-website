@@ -66,6 +66,14 @@ Measured with a layout audit at 360, 768, 1440 and 1920 px (left edges against t
 | A graduated rim (30 ticks, one longer ink index, echoing the moon's dial) follows on `hover`, ahead of the halftone on `drift`, so the light trails behind it | motion: springs; visual-directions: the moon motif |
 | The rim rolls with sideways movement exactly as a wheel of its radius would (dx / r), and tightens to 0.72 over links and buttons on `glide` | motion: transform only, springs; hidden on touch and reduced motion |
 
+## Focus reveal and light mode
+| Was wrong | Change | Rule |
+|---|---|---|
+| The halftone loupe read as a stamped dot square, and its ticked rim as a sparkle | Removed. Under the cursor, a soft round window traces the same orbits, dial and moon in `--fg-3`, so the drawing comes into focus; nothing new is added | anti-patterns: moon clichés, starfields; visual-directions: texture barely there |
+| The dial's ticks floated loose and read as debris | Ticks stand on their own hairline circle | visual-directions: hairline structure |
+| Light mode shaded the moon backwards (lit side grey), so the full moon was a grey blob behind text | `--moon-lit` / `--moon-dark`: in light the lit side is paper and the unlit side is tinted | color-and-tokens |
+| Light-mode orbits almost invisible | `--texture-strength` 55% in light, 40% in dark | color-and-tokens: visible in both themes |
+
 ## Copy
 | Change | Rule |
 |---|---|

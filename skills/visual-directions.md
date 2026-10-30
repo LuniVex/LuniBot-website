@@ -17,9 +17,12 @@ language as everything else: a hairline disc, its lit part as one flat shape, no
 - **Mark:** the LuniVex crescent (`components/Moon.tsx`) beside the name in the header and footer, on the
   theme toggle, and as the favicon.
 - **Background:** one moon behind every page with hairline orbits and a 30-tick lunar dial. It waxes from a
-  crescent at the top of a page to full at the bottom, drawn exactly with `phasePath`; its lit shape is the
-  faintest tint (`bg-alt`, below the cards' `tile`) edged with a hairline. The dial's one longer ink tick is
-  tonight's real phase; the background never uses the accent, which belongs to the page's primary action.
+  crescent at the top of a page to full at the bottom, drawn exactly with `phasePath` and edged with a
+  hairline. Dark mode: the lit side is the faintest tint (`bg-alt`, below the cards' `tile`). Light mode is an
+  engraving: the lit side is paper and the unlit side takes the tint. The dial's ticks stand on their own
+  hairline circle; its one longer ink tick is tonight's real phase. The background never uses the accent.
+- **Cursor:** no object follows the pointer. Inside a soft round window around it, the same orbits, dial
+  and moon are traced again in a stronger tint, so the drawing comes into focus where you look.
 - **Structure:** each numbered section carries a small phase that waxes down the page, so a page reads as
   one lunar cycle.
 - **Fact, not flavour:** the footer shows tonight's actual phase. Phases are drawn exactly (`phasePath`).
