@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useSyncExternalStore } from "react";
 import { gsap, reducedMotion, spring, springs, useGSAP } from "@/lib/motion";
-import { moonTonight } from "@/lib/moon";
+import { moonTonight, phasePath } from "@/lib/moon";
 
 const LENS = 520;
 const SPAN = 3200; // the orbit drawing's size in px; it fades out long before its edges
@@ -16,23 +16,27 @@ function screenGeo() {
   return `${Math.round(wide ? Math.min(0.27 * short, 300) : 0.5 * short)}|${wide ? 0.76 : 0.92}|${wide ? 0.46 : 0.8}`;
 }
 const onResize = (notify: () => void) => { addEventListener("resize", notify); return () => removeEventListener("resize", notify); };
+/** Scroll progress (0..1) to the moon's phase: a thin waxing crescent at the top, full at the bottom. */
+const phaseAt = (progress: number) => 0.13 + 0.37 * progress;
 const parseGeo = (key: string) => { const [r, x, y] = key.split("|").map(Number); return { r, x, y }; };
 
 /**
  * The site's one background system: LuniVex's moon (skills/visual-directions.md), fixed behind every page.
- * - A large, faint moon: a hairline disc whose lit part is a flat surface tint. It waxes as you scroll,
- *   from a thin crescent at the top of a page to full at the bottom.
- * - Concentric hairline orbits around it, fading with distance, and a dial of 30 ticks (one per day of the
- *   lunar month) that turns slowly with the scroll. One tick is in the accent: tonight's real moon phase.
+ * - A large, faint moon: a hairline disc whose lit part is one flat shape in the faintest tint (bg-alt, so
+ *   cards in front of it still read as cards), edged with a hairline. The phase is drawn exactly
+ *   (`phasePath`): a thin crescent at the top of a page, waxing to full at the bottom.
+ * - Hairline orbits around it, spaced wider with distance and fading out, and a dial of 30 ticks (one per
+ *   day of the lunar month) that turns slowly with the scroll. One tick, longer and in ink, is tonight's
+ *   real phase. It stays out of the accent: the accent belongs to the page's own primary action.
  * - Everything leans a few pixels toward the pointer, and a soft window of dots follows the cursor.
  *
  * Driven by the slow `drift` spring on GSAP's ticker (the same loop as Lenis and the 3D), transform only
- * (the waxing is a shadow disc sliding aside), and idle once settled. Reduced motion: a still crescent.
+ * (plus the lit shape's path), and idle once settled. Reduced motion: a still crescent.
  */
 export function Backdrop() {
   const orbit = useRef<HTMLDivElement>(null);
   const dial = useRef<SVGGElement>(null);
-  const shadow = useRef<SVGCircleElement>(null);
+  const lit = useRef<SVGPathElement>(null);
   const lens = useRef<HTMLDivElement>(null);
   const dots = useRef<HTMLDivElement>(null);
   const geo = parseGeo(useSyncExternalStore(onResize, screenGeo, () => SERVER_GEO));
@@ -42,9 +46,7 @@ export function Backdrop() {
     const r = geo.r;
     const state = { scroll: 0, progress: 0, leanX: 0, leanY: 0, lx: innerWidth / 2, ly: innerHeight / 3 };
     const paint = () => {
-      // Waxing: the shadow disc slides left; a gap of d between the discs leaves a crescent d wide.
-      const phase = 0.12 + 0.38 * state.progress;
-      shadow.current?.setAttribute("transform", `translate(${(-4 * r * phase).toFixed(2)} 0)`);
+      lit.current?.setAttribute("d", phasePath(phaseAt(state.progress), r));
       orbit.current!.style.transform = `translate3d(calc(-50% + ${state.leanX.toFixed(2)}px), calc(-50% + ${(state.leanY - state.scroll * 0.06).toFixed(2)}px), 0)`;
       if (dial.current) dial.current.style.transform = `rotate(${(state.scroll * 0.012).toFixed(3)}deg)`;
       const x = state.lx - LENS / 2, y = state.ly - LENS / 2;
@@ -87,7 +89,8 @@ export function Backdrop() {
   }, { dependencies: [geo.r] });
 
   const { r } = geo;
-  const rings = Array.from({ length: 22 }, (_, i) => r + 72 + i * 72);
+  // Orbits widen with distance, like a technical drawing's scale rings, instead of an even ripple.
+  const rings = [1.4, 1.85, 2.45, 3.25, 4.3, 5.7].map((k) => Math.round(r * k));
   const tick = (i: number, len: number) => {
     const a = (i / TICKS) * Math.PI * 2 - Math.PI / 2;
     const r1 = r + 26, r2 = r + 26 + len;
@@ -99,19 +102,14 @@ export function Backdrop() {
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <div ref={orbit} className="orbits absolute will-change-transform" style={{ left: `${geo.x * 100}%`, top: `${geo.y * 100}%`, width: SPAN, height: SPAN, transform: "translate3d(-50%, -50%, 0)" }}>
         <svg viewBox={`${-SPAN / 2} ${-SPAN / 2} ${SPAN} ${SPAN}`} width={SPAN} height={SPAN}>
-          <defs>
-            <mask id="lb-moon-lit">
-              <circle r={r} fill="#fff" />
-              <circle ref={shadow} r={r + 1} fill="#000" transform={`translate(${-4 * r * 0.12} 0)`} />
-            </mask>
-          </defs>
           {rings.map((rr) => <circle key={rr} r={rr} {...hair} />)}
           <g ref={dial} style={{ transformOrigin: "0 0" }}>
             {Array.from({ length: TICKS }, (_, i) => <line key={i} {...tick(i, i % 5 === 0 ? 14 : 7)} {...hair} />)}
-            {today !== null && <line {...tick(today * TICKS, 18)} stroke="var(--blue)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" strokeLinecap="round" />}
+            {today !== null && <line {...tick(today * TICKS, 20)} stroke="var(--fg-3)" strokeWidth={1} vectorEffect="non-scaling-stroke" />}
           </g>
-          <circle r={r} fill="var(--tile)" mask="url(#lb-moon-lit)" />
-          <circle r={r} fill="none" stroke="var(--line)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+          {/* The dark limb is the quietest line; the lit shape carries a hairline along its limb and terminator. */}
+          <circle r={r} fill="var(--bg)" stroke="var(--texture)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+          <path ref={lit} d={phasePath(phaseAt(0), r)} fill="var(--bg-alt)" stroke="var(--line)" strokeWidth={1} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
         </svg>
       </div>
       <div ref={lens} className="lens absolute left-0 top-0 opacity-0 will-change-transform" style={{ width: LENS, height: LENS }}>
