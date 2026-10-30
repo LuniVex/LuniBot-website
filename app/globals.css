@@ -60,6 +60,8 @@
 .stack-mark * { vector-effect: non-scaling-stroke; stroke-width: 1px; }
 /* Once the 3D journey is live, it draws the stack itself: the static drawing steps aside. */
 html[data-journey-live] [data-stack-anchor] > svg { opacity: 0; transition: opacity 0.3s var(--ease); }
+/* ...and lands each bot's model on its card's stage, where the static mark steps aside for it. */
+html[data-journey-live] [data-journey] > * { opacity: 0; transition: opacity 0.3s var(--ease); }
 
 /* The background system (components/Backdrop.tsx): LuniVex's moon with its hairline orbits and dial, and a
    soft round window around the cursor in which the same drawing comes into focus. Gradient functions here

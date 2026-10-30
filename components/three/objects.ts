@@ -3,6 +3,7 @@ import {
   Mesh, MeshBasicMaterial, OrthographicCamera, Scene, Vector3,
 } from "three";
 import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader.js";
+import { buildModel, buildPackage, Outlines, plinth } from "./models";
 import { makeRenderer, type Palette } from "./shared";
 
 /**
@@ -14,7 +15,8 @@ import { makeRenderer, type Palette } from "./shared";
  * Loaded with a dynamic import only when a stage is about to come into view.
  */
 
-export type Kind = "mark";
+/** "model": a bot's model on its plinth (its mark lifted into layers if it has no model yet). "package": How it works. */
+export type Kind = "model" | "package";
 
 export interface Stage {
   /** Sets where scroll wants the object to be (0..1 through its section). */
@@ -29,8 +31,8 @@ export interface Stage {
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
-/** Creates the renderer and the bot-mark object. Null if WebGL is unavailable or software-rendered, so the caller keeps the SVG. */
-export function createStage(canvas: HTMLCanvasElement, kind: Kind, palette: Palette, svg?: string): Stage | null {
+/** Creates the renderer and the object. Null if WebGL is unavailable or software-rendered, so the caller keeps the SVG. */
+export function createStage(canvas: HTMLCanvasElement, kind: Kind, palette: Palette, opts: { slug?: string; svg?: string } = {}): Stage | null {
   const renderer = makeRenderer(canvas);
   if (!renderer) return null;
 
@@ -52,7 +54,8 @@ export function createStage(canvas: HTMLCanvasElement, kind: Kind, palette: Pale
   recolor(palette);
 
   const scene = new Scene();
-  const object = buildMark(mats, svg ?? "");
+  const outlines = new Outlines();
+  const object = kind === "package" ? packageObject(mats, outlines) : modelObject(mats, outlines, opts.slug ?? "", opts.svg ?? "");
   scene.add(object.root);
   const camera = new OrthographicCamera(-1, 1, 1, -1, -100, 100);
   camera.position.set(0, 0, 50);
@@ -63,7 +66,7 @@ export function createStage(canvas: HTMLCanvasElement, kind: Kind, palette: Pale
   let dirty = true;
   let size = { w: 1, h: 1 };
 
-  const draw = () => { object.pose(now); renderer.render(scene, camera); };
+  const draw = () => { object.pose(now); scene.updateMatrixWorld(true); outlines.update(); renderer.render(scene, camera); };
 
   return {
     aim(p) { target = Math.min(1, Math.max(0, p)); },
@@ -97,6 +100,42 @@ export function createStage(canvas: HTMLCanvasElement, kind: Kind, palette: Pale
 
 type Mats = { face: MeshBasicMaterial; edge: LineBasicMaterial; quiet: LineBasicMaterial; accent: MeshBasicMaterial; accentLine: LineBasicMaterial };
 interface Built { root: Group; halfHeight: number; pose(p: number): void }
+
+/** A bot's model on its plinth, turned by scroll through its section: from a three-quarter view on to the other side. */
+function modelObject(mats: Mats, outlines: Outlines, slug: string, svg: string): Built {
+  const model = buildModel(slug, mats, outlines);
+  if (!model) return buildMark(mats, svg);
+  const root = new Group();
+  const turn = new Group();
+  turn.add(plinth(mats, outlines), model);
+  turn.position.y = -0.38; // the model's visual centre sits on the stage's centre
+  root.add(turn);
+  return {
+    root,
+    halfHeight: 1.75,
+    pose(p) {
+      const e = smooth(p);
+      root.rotation.set(lerp(0.62, 0.42, e), lerp(-1.15, 0.3, e), 0);
+    },
+  };
+}
+
+/** How it works: the zip opens as you read the first step, the token lifts out during the second. */
+function packageObject(mats: Mats, outlines: Outlines): Built {
+  const root = new Group();
+  const pkg = buildPackage(mats, outlines);
+  pkg.root.position.y = -0.55;
+  root.add(pkg.root);
+  const span = (p: number, a: number, b: number) => smooth(Math.min(1, Math.max(0, (p - a) / (b - a))));
+  return {
+    root,
+    halfHeight: 1.6,
+    pose(p) {
+      pkg.pose(span(p, 0.12, 0.5), span(p, 0.42, 0.78));
+      root.rotation.set(lerp(0.6, 0.48, smooth(p)), lerp(-0.95, -0.35, smooth(p)), 0);
+    },
+  };
+}
 
 /**
  * A bot's mark from public/marks, lifted into layers: the strokes as 1px hairlines, the baseline set

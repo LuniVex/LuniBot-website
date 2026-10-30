@@ -15,7 +15,8 @@ const rectOf = (el: Element | null): Box | null => {
  * - The hero anchor (`[data-stack-anchor]`) holds the static drawing; once the 3D is live the drawing hides
  *   and the stack is drawn in its place.
  * - Each slab has a ScrollTrigger from "the hero begins to leave" to "the Bots section reaches the top",
- *   so the trip is scrubbed by scroll and reverses when you scroll back.
+ *   so the trip is scrubbed by scroll and reverses when you scroll back. It lands on its card's stage
+ *   (`[data-journey]`), whose static drawing steps aside once the 3D is live, and stays there.
  * - The scroll values are followed with a short time-based lag on GSAP's ticker (the same loop as Lenis),
  *   so the slabs feel attached to the scroll rather than bolted to it.
  * - A frame is drawn only when something changed (scroll, size, theme, an easing value); otherwise nothing
@@ -38,8 +39,10 @@ export function StackJourney({ slugs, marks }: { slugs: string[]; marks: string[
     const now = { hero: 0, trips: slugs.map(() => 0) };
     let dirty = true;
     const targets = () => slugs.map((s) => document.querySelector(`[data-journey="${s}"]`));
-    const shown = slugs.map(() => -1);
     const cleanup: (() => void)[] = [];
+    // Where everything was last drawn. The cards also move without scrolling (hover lift, filtering, the
+    // grid reflowing), so the boxes are compared every tick and a frame is drawn only when one changed.
+    let last = "";
 
     const tick = (_t: number, deltaMs: number) => {
       if (!journey) return;
@@ -49,23 +52,20 @@ export function StackJourney({ slugs, marks }: { slugs: string[]; marks: string[
       const ease = (a: number, b: number) => { const d = b - a; if (Math.abs(d) < 0.0005) return b; moving = true; return a + d * f; };
       now.hero = ease(now.hero, goal.hero);
       now.trips = now.trips.map((v, i) => ease(v, goal.trips[i]));
-      if (!moving && !dirty) return;
-      dirty = false;
       const anchorBox = rectOf(anchor) ?? { x: 0, y: -9999, w: 1, h: 1 };
-      const els = targets();
-      journey.draw({ anchor: anchorBox, hero: now.hero, pieces: now.trips.map((travel, i) => ({ travel, target: rectOf(els[i]) })) });
-      // Hand each card's mark over as its slab lands.
-      els.forEach((el, i) => {
-        const o = Math.round(journey!.handover(i) * 100) / 100;
-        if (el && o !== shown[i]) { (el as HTMLElement).style.opacity = String(o); shown[i] = o; }
-      });
+      const boxes = targets().map(rectOf);
+      const at = JSON.stringify([anchorBox, boxes]);
+      if (!moving && !dirty && at === last) return;
+      dirty = false;
+      last = at;
+      journey.draw({ anchor: anchorBox, hero: now.hero, pieces: now.trips.map((travel, i) => ({ travel, target: boxes[i] })) });
     };
     const mark = () => { dirty = true; };
 
     (async () => {
       const { createJourney } = await import("./three/journey");
       if (!alive) return;
-      journey = createJourney(cv, readPalette(), marks);
+      journey = createJourney(cv, readPalette(), marks, slugs);
       if (!journey) return; // no WebGL: the drawing and the marks stay as they are
       const fit = () => { journey?.resize(innerWidth, innerHeight); dirty = true; };
       fit();
@@ -105,7 +105,6 @@ export function StackJourney({ slugs, marks }: { slugs: string[]; marks: string[
       colors?.disconnect();
       cleanup.forEach((f) => f());
       delete root.dataset.journeyLive;
-      targets().forEach((el) => (el as HTMLElement | null)?.style.removeProperty("opacity"));
       journey?.dispose();
     };
   }, [slugs, marks]);

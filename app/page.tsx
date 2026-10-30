@@ -4,7 +4,7 @@ import { HowItWorks, LatestUpdates } from "@/components/HubSections";
 import { DiscordCta, SectionHead } from "@/components/Sections";
 import { StackJourney } from "@/components/StackJourney";
 import { bots } from "@/lib/bots";
-import { getFile, inPublic } from "@/lib/files";
+import { getFile } from "@/lib/files";
 import { fmtSize } from "@/lib/format";
 import { getMark } from "@/lib/marks";
 
@@ -13,16 +13,12 @@ import { getMark } from "@/lib/marks";
  * works; 03 latest updates and the plain facts; 04 the one call to action; then the footer.
  */
 export default function Hub() {
-  // The most recently updated bot is featured: first, full width, with its first screenshot.
+  // The most recently updated bot is featured: first and full width.
   const featured = [...bots].sort((a, b) => b.updated.localeCompare(a.updated) || b.released.localeCompare(a.released))[0]?.slug ?? "";
   const ordered = [...bots].sort((a, b) => Number(b.slug === featured) - Number(a.slug === featured));
   const entries = ordered.map((bot, i) => {
     const file = getFile(bot);
-    const first = bot.shots[0];
-    return {
-      bot, size: file ? fmtSize(file.size) : "no file", index: String(i + 1).padStart(2, "0"), mark: getMark(bot.slug),
-      shot: first ? { shot: first, ready: inPublic(first.file) } : undefined,
-    };
+    return { bot, size: file ? fmtSize(file.size) : "no file", index: String(i + 1).padStart(2, "0"), mark: getMark(bot.slug) };
   });
   const zip = bots[0]?.download.file.split("/").pop() ?? "bot.zip";
   const marks = entries.map((e) => e.mark);

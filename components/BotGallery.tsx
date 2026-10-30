@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { memo, useMemo, useRef, useState } from "react";
-import type { Bot, Shot } from "@/lib/bots";
+import type { Bot } from "@/lib/bots";
 import { fmtDate } from "@/lib/format";
 import { licenseInfo } from "@/lib/license";
 import { arrive, cascade, Flip, gsap, reducedMotion, settle, settleDuration, spring, springs, useGSAP } from "@/lib/motion";
@@ -12,11 +12,10 @@ import { Count } from "./Count";
 import { DownloadButton } from "./DownloadButton";
 import { Mark } from "./Mark";
 import { Appear, Assemble, finishAssemblies } from "./Motion";
-import { Plate } from "./Plate";
 import { VoteButton } from "./VoteButton";
 
-/** One bot as the hub shows it. `mark` is its inlined SVG; `shot` is its first screenshot, for the featured card. */
-export interface Entry { bot: Bot; size: string; index: string; mark: string | null; shot?: { shot: Shot; ready: boolean } }
+/** One bot as the hub shows it. `mark` is its inlined SVG. */
+export interface Entry { bot: Bot; size: string; index: string; mark: string | null }
 
 /** How well a bot matches a search: name first, then tagline, then anything else. 0 means no match. */
 function score(bot: Bot, q: string) {
@@ -153,49 +152,87 @@ function useCardHover() {
   return { ref, handlers };
 }
 
+/** Corner registration marks, as on a printed plate: four small hairline angles just inside a box. */
+function Corners() {
+  const c = "pointer-events-none absolute size-2.5 border-line";
+  return (
+    <>
+      <span aria-hidden="true" className={`${c} left-3 top-3 border-l border-t`} />
+      <span aria-hidden="true" className={`${c} right-3 top-3 border-r border-t`} />
+      <span aria-hidden="true" className={`${c} bottom-3 left-3 border-b border-l`} />
+      <span aria-hidden="true" className={`${c} bottom-3 right-3 border-b border-r`} />
+    </>
+  );
+}
+
 /**
- * One bot, left-aligned like a catalogue entry: its mark and index number, the name and line, its
- * last 30 days of downloads as a bar row, then the actions on a hairline. The featured bot spans the
- * full width with its first screenshot beside it. The whole card opens the bot's page.
+ * The card's stage: a faint band with corner marks where the bot is shown as an object. The hub's 3D
+ * journey lands the bot's slab here and raises its model out of it (components/three/journey.ts); until
+ * then, and wherever 3D doesn't run, the bot's mark is drawn here large. `[data-journey]` is the box the
+ * 3D aims at, and its contents step aside once the 3D is live (app/globals.css).
  */
-const Tile = memo(function Tile({ bot, size, index, mark, shot, featured }: Entry & { featured: boolean }) {
+function Stage({ slug, mark, name, index, note, featured }: { slug: string; mark: string | null; name: string; index: string; note?: string; featured: boolean }) {
+  return (
+    <div className={`relative bg-alt ${featured ? "min-h-72 border-b border-line md:order-last md:min-h-0 md:border-b-0 md:border-l" : "aspect-[16/10] border-b border-line"}`}>
+      <Corners />
+      <p data-meta="" className="smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2 t-tiny absolute left-6 top-5 font-mono text-fg-3 tabular-nums">
+        {index}{note && <span className="ml-3">{note}</span>}
+      </p>
+      <div data-journey={slug} className="absolute inset-x-6 bottom-6 top-12 grid place-items-center">
+        <Mark svg={mark} name={name} size={featured ? 128 : 96} />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * One bot as a catalogue entry on paper, framed by a hairline: its stage with the bot as an object, then the
+ * facts (status, name and line, a row of specs, the last 30 days of downloads) and the actions on a
+ * hairline. The featured bot spans the full width with its stage on the right. The whole card opens the
+ * bot's page; the one accent is the Download button.
+ */
+const Tile = memo(function Tile({ bot, size, index, mark, featured }: Entry & { featured: boolean }) {
   const { data } = useStats(bot.slug);
   const downloads = data?.downloads.total;
   // The article is the hover target and never moves; only the card inside lifts. If the moving card were
   // the target, a cursor near its bottom edge would fall off it as it rose and the hover would stutter.
   const { ref, handlers } = useCardHover();
+  const meta = "smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2";
+  const specs: [string, string][] = [["Version", `v${bot.version}`], ["Size", size], ["Updated", fmtDate(bot.updated)]];
   return (
     <article ref={ref} className="group/card relative h-full" {...handlers}>
-      <div data-lift="" data-press="0.985" className={`relative h-full will-change-transform rounded-ui bg-tile p-8 ${featured ? "grid gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-start" : "flex flex-col"}`}>
-        <span data-hair="" aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-ui border border-line opacity-0" />
-        <div className="flex h-full flex-col">
-          <div className="flex items-start justify-between">
-            {/* Where this bot's 3D slab lands on the hub (components/StackJourney.tsx). */}
-            <Mark svg={mark} name={bot.name} size={featured ? 72 : 56} optical journey={bot.slug} />
-            <span data-meta="" className="smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2 t-small font-mono text-fg-3 tabular-nums">{featured ? `${index}  Newest` : index}</span>
-          </div>
-          <p data-meta="" className="smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2 t-small mt-8 text-fg-3"><span className="capitalize">{bot.status}</span> · {bot.language} · {licenseInfo(bot.license).short}</p>
-          <h3 className={`mt-1 ${featured ? "t-section" : "t-tile"}`}>
+      <div data-lift="" data-press="0.985" className={`relative h-full overflow-hidden will-change-transform rounded-ui border border-line bg-bg ${featured ? "grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]" : "flex flex-col"}`}>
+        <span data-hair="" aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 rounded-ui border border-fg-3 opacity-0" />
+        <Stage slug={bot.slug} mark={mark} name={bot.name} index={index} note={featured ? "Newest" : undefined} featured={featured} />
+        <div className={`flex flex-1 flex-col ${featured ? "p-8 md:p-10" : "p-8"}`}>
+          <p data-meta="" className={`${meta} t-small font-mono text-fg-3`}><span className="capitalize">{bot.status}</span> · {bot.language} · {licenseInfo(bot.license).short}</p>
+          <h3 className={`mt-2 ${featured ? "t-section" : "t-tile"}`}>
             <Link href={`/bots/${bot.slug}`} className="rounded-ui after:absolute after:inset-0 after:rounded-ui focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-blue">{bot.name}</Link>
           </h3>
           <p className={`mt-2 max-w-[30ch] text-fg-2 ${featured ? "t-lead" : "t-body-lg min-h-[2lh]"}`}>{bot.tagline}</p>
 
-          <div className="mt-8">
-            <DownloadBars slug={bot.slug} />
-            <p data-meta="" className="smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2 t-tiny mt-2 flex justify-between gap-4 font-mono text-fg-3 tabular-nums">
-              <span>Last 30 days</span>
-              <span>{downloads === undefined ? "–" : <Count value={downloads} />} {downloads === 1 ? "download" : "downloads"} in all</span>
-            </p>
-          </div>
-          <p data-meta="" className="smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2 t-small mb-8 mt-4 text-fg-3 tabular-nums">v{bot.version} · {size} · Updated {fmtDate(bot.updated)}</p>
+          <dl className="mt-8 grid grid-cols-3 gap-x-4 border-t border-line/70 pt-4">
+            {specs.map(([k, v]) => (
+              <div key={k} className="min-w-0">
+                <dt data-meta="" className={`${meta} t-tiny font-mono text-fg-3`}>{k}</dt>
+                <dd className="t-small mt-1 truncate tabular-nums">{v}</dd>
+              </div>
+            ))}
+          </dl>
 
-          <div className="relative z-10 mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line/70 pt-6">
+          {/* One line: the label, the month's bars running between like a leader, and the total. */}
+          <div data-meta="" className={`${meta} t-tiny mb-8 mt-6 flex items-end gap-3 font-mono text-fg-3 tabular-nums`}>
+            <span className="shrink-0">Last 30 days</span>
+            <DownloadBars slug={bot.slug} className="h-6 flex-1" />
+            <span className="shrink-0">{downloads === undefined ? "–" : <Count value={downloads} />} {downloads === 1 ? "download" : "downloads"} in all</span>
+          </div>
+
+          <div className="relative z-10 mt-auto flex flex-wrap items-center gap-x-3 gap-y-3 border-t border-line/70 pt-6">
             <DownloadButton slug={bot.slug}>Download</DownloadButton>
             <VoteButton slug={bot.slug} />
-            <More href={`/bots/${bot.slug}`}>Details</More>
+            <More href={`/bots/${bot.slug}`} className="ml-auto">Details</More>
           </div>
         </div>
-        {featured && shot && <Plate shot={shot.shot} fig={1} ready={shot.ready} />}
       </div>
     </article>
   );
@@ -206,8 +243,8 @@ const Soon = memo(function Soon({ mark }: { mark: string | null }) {
   const { ref, handlers } = useCardHover();
   return (
     <article ref={ref} className="group/card relative" {...handlers}>
-      <div data-lift="" data-press="0.985" className="relative flex will-change-transform flex-col gap-6 rounded-ui p-8 md:flex-row md:items-center">
-        <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-ui border border-line/70" />
+      <div data-lift="" data-press="0.985" className="relative flex will-change-transform flex-col gap-6 rounded-ui bg-bg p-8 md:flex-row md:items-center">
+        <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-ui border border-dashed border-line" />
         <span data-hair="" aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-ui border border-fg-3 opacity-0" />
         <Mark svg={mark} name="More" size={56} optical className="text-fg-2" />
         <div className="md:flex-1">
