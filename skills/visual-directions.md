@@ -38,7 +38,7 @@ drawn exactly from real phase maths (`lib/moon.ts`), nothing else.
 - **Night sky:** behind the moon, a starfield (`components/Starfield.tsx`): flat ink dots at three depths that
   drift with scroll, lean to the pointer and twinkle gently, a few bright stars with hairline rays, faint
   star-chart lines between them. Dark theme: a starry night. Light theme: the same sky as a printed star chart.
-- **One diagram:** mark, favicon, theme toggle and loading state are the same moon + orbit + index tick.
+- **One diagram:** mark, favicon and theme toggle are the same moon + orbit + index tick.
 - **Fact, not flavour:** the footer shows tonight's actual phase. Phases are drawn exactly
   (`phasePath`); lunation times come from Meeus. If a detail reads like a horoscope or a fantasy game, cut it.
 

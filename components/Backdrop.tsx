@@ -3,6 +3,7 @@ import { useRef, useSyncExternalStore } from "react";
 import { gsap, reducedMotion, spring, springs, useGSAP } from "@/lib/motion";
 import { moonTonight, OPENING, phasePath } from "@/lib/moon";
 import { SWEEP } from "./Moment";
+import { r3 } from "./Moon";
 import { Starfield } from "./Starfield";
 
 /** Size of the window around the cursor in which the drawing comes into focus. */
@@ -156,7 +157,7 @@ export function Backdrop() {
   const dialR = r + 26;
   const tick = (i: number, len: number) => {
     const a = (i / TICKS) * Math.PI * 2 - Math.PI / 2;
-    return { x1: Math.cos(a) * dialR, y1: Math.sin(a) * dialR, x2: Math.cos(a) * (dialR + len), y2: Math.sin(a) * (dialR + len) };
+    return { x1: r3(Math.cos(a) * dialR), y1: r3(Math.sin(a) * dialR), x2: r3(Math.cos(a) * (dialR + len)), y2: r3(Math.sin(a) * (dialR + len)) };
   };
   const line = (stroke: string) => ({ fill: "none", stroke, strokeWidth: 1, vectorEffect: "non-scaling-stroke" as const });
 

@@ -17,10 +17,13 @@ export function Phase({ phase, size = 12, className = "" }: { phase: number; siz
   );
 }
 
+/** Rounded to 3 decimals: Node and browsers can differ in the last digit of sin/cos, which breaks hydration. */
+export const r3 = (n: number) => Math.round(n * 1000) / 1000;
+
 /** Where a phase sits on the dial, as a point at radius r (0 at the top, turning clockwise). */
 export const onDial = (phase: number, r: number) => {
   const a = phase * 2 * Math.PI - Math.PI / 2;
-  return [Math.cos(a) * r, Math.sin(a) * r] as const;
+  return [r3(Math.cos(a) * r), r3(Math.sin(a) * r)] as const;
 };
 
 /** The LuniVex mark: the moon at the phase every page opens on (`OPENING`), its orbit, and the dial's index tick for that phase. */

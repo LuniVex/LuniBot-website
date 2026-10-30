@@ -96,7 +96,7 @@ Measured with a layout audit at 360, 768, 1440 and 1920 px (left edges against t
 | Engraving hatch (`.hatch`, `--hatch`): on the card stages, the unlit side of the background moon and the dial's moon, and under the cursor's focus window, where it stays fixed while the window moves. Strong enough to read in light (an engraved plate), almost gone in dark (night sky) | visual-directions: texture barely there |
 | Orbits at six depths: each leans and drifts with scroll by its own amount (parallax), relative to the moon | 3d-and-scroll: depth from layering and parallax |
 | Bot phases (`lunar` in data/bots.json): how much of the bot's work stays on your machine. Modmail full, DiscMeet gibbous, Music Bot crescent, the coming-soon card new. Badge on each card's stage and the bot page; the reason under Good to know | visual-directions: bot identities |
-| One diagram everywhere: the LuniVex mark is the moon at the opening phase, its orbit and the dial's index tick for that phase (header, footer, favicon); the theme toggle sweeps the same diagram from crescent (dark) to full (light); the loading state runs it through a lunation | visual-directions: the motif |
+| One diagram everywhere: the LuniVex mark is the moon at the opening phase, its orbit and the dial's index tick for that phase (header, footer, favicon); the theme toggle sweeps the same diagram from crescent (dark) to full (light). (A loading state was tried and removed: its Suspense boundary made the page hydrate after the page transition had styled it, and every page is static, so it never showed.) | visual-directions: the motif |
 
 ## Copy
 | Change | Rule |
