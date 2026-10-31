@@ -1,4 +1,5 @@
-import { type Bot, bots } from "@/lib/bots";
+import Link from "next/link";
+import { type Bot, bots, type SiteUpdate, updates, upcoming } from "@/lib/bots";
 import { fmtDate } from "@/lib/format";
 import { Terminal } from "./HeroFx";
 import { RevealChild, RevealGroup, Reveal } from "./Motion";
@@ -44,10 +45,13 @@ export function HowItWorks({ index, of, zip }: { index: string; of: number; zip:
   );
 }
 
-type Event = { day: string; text: string };
+type Event = { day: string; text: string; href?: string };
 
-/** Every release and update in data/bots.json, newest first; updates on the same day are grouped. */
-function timeline(list: Bot[]): Event[] {
+/**
+ * Every release and update in data/bots.json, newest first; updates on the same day are grouped. Site news
+ * (`updates`) is listed first on its day.
+ */
+function timeline(list: Bot[], news: SiteUpdate[] = []): Event[] {
   const byDay = new Map<string, { released: string[]; updated: Map<string, string[]> }>();
   const at = (day: string) => byDay.get(day) ?? byDay.set(day, { released: [], updated: new Map() }).get(day)!;
   for (const b of list) {
@@ -58,7 +62,9 @@ function timeline(list: Bot[]): Event[] {
     }
   }
   const and = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}` : xs[0]);
+  for (const n of news) at(n.date);
   return [...byDay.entries()].sort(([a], [b]) => b.localeCompare(a)).flatMap(([day, e]) => [
+    ...news.filter((n) => n.date === day).map((n) => ({ day, text: n.text, href: n.href })),
     ...[...e.updated.entries()].map(([v, names]) => ({ day, text: `${and(names)} updated to ${v}` })),
     ...(e.released.length ? [{ day, text: `${and(e.released)} first released` }] : []),
   ]);
@@ -66,9 +72,10 @@ function timeline(list: Bot[]): Event[] {
 
 /** 03 · What changed lately, from the bots' own dates, beside the plain facts about every download. */
 export function LatestUpdates({ index, of }: { index: string; of: number }) {
-  const events = timeline(bots);
+  const events = timeline(bots, updates);
   const facts: [string, React.ReactNode][] = [
     ["Bots", bots.length],
+    ...(upcoming.length ? [["Coming soon", upcoming.length] as [string, React.ReactNode]] : []),
     ["Downloads, all time", <TotalDownloads key="t" slugs={bots.map((b) => b.slug)} />],
     ["Licence", "GPL-3.0"],
     ["Account needed", "None"],
@@ -83,7 +90,7 @@ export function LatestUpdates({ index, of }: { index: string; of: number }) {
               {events.map((e) => (
                 <li key={e.day + e.text} data-reveal="" className="grid gap-1 border-t border-line/70 py-4 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-baseline">
                   <time dateTime={e.day} className="t-small font-mono text-fg-3 tabular-nums">{fmtDate(e.day)}</time>
-                  <span>{e.text}</span>
+                  <span>{e.href ? <Link href={e.href} className="smooth decoration-1 underline-offset-[0.2em] hover:underline">{e.text}</Link> : e.text}</span>
                 </li>
               ))}
             </ol>

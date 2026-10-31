@@ -367,5 +367,17 @@
         "reason": "Not released yet. The disc is there but not lit: Guard is built and in testing, and its first release will light it."
       }
     }
+  ],
+  "updates": [
+    {
+      "date": "2026-10-31",
+      "text": "Docs added: guides for every bot, from install to troubleshooting",
+      "href": "/docs"
+    },
+    {
+      "date": "2026-10-31",
+      "text": "Guard announced: a security bot that stops nukes and restores the server. Coming soon",
+      "href": "/bots/guard"
+    }
   ]
 }

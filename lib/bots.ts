@@ -60,6 +60,10 @@ export const site = data.site;
 export const bots = data.bots as unknown as Bot[];
 export const upcoming = (data.upcoming ?? []) as unknown as UpcomingBot[];
 
+/** Site news for the hub's Latest updates (data/bots.json `updates`), merged with the bots' own dates. */
+export interface SiteUpdate { date: string; text: string; href?: string }
+export const updates = (data.updates ?? []) as SiteUpdate[];
+
 export const getBot = (slug: string) => bots.find((b) => b.slug === slug);
 export const getUpcoming = (slug: string) => upcoming.find((b) => b.slug === slug);
 export const allTags = () => [...new Set(bots.flatMap((b) => b.tags))].sort();
