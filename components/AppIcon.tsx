@@ -38,6 +38,16 @@ const icons: Record<string, { color: string; glyph: (tile: string) => React.Reac
       </>
     ),
   },
+  // Guard: a shield with a keyhole cut into it (a server kept locked against nukes).
+  shield: {
+    color: "#0f766e",
+    glyph: (tile) => (
+      <>
+        <path fill="currentColor" d="M12 2.8 19.5 5.4v5.6c0 4.6-3.1 7.9-7.5 9.9-4.4-2-7.5-5.3-7.5-9.9V5.4z" />
+        <path fill={tile} d="M12 7.6a1.9 1.9 0 0 1 .95 3.55V14h-1.9v-2.85A1.9 1.9 0 0 1 12 7.6z" />
+      </>
+    ),
+  },
 };
 
 /** The bot's colour, for accents that should match its icon. */

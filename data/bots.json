@@ -299,5 +299,73 @@
         }
       ]
     }
+  ],
+  "upcoming": [
+    {
+      "name": "Guard",
+      "slug": "guard",
+      "tagline": "Stops nukes and raids, then puts the server back.",
+      "description": "A security bot you run yourself. It watches the audit log and stops anyone who mass-deletes channels or roles, mass-bans or grabs permissions, then rebuilds what they broke from its own backups. It also handles raids, verification, spam, scam links and impersonators, and can restore or copy a whole server from a backup. Every protection is free, with no limits on backups.",
+      "language": "JavaScript",
+      "runtime": "Node.js 22.12+",
+      "version": "1.0.0",
+      "icon": "shield",
+      "stage": "In testing",
+      "note": "Guard passes its tests but hasn't been tried against a live attack yet. It will be released once it has stopped a staged nuke on a test server.",
+      "features": [
+        "Anti-nuke: limits per person and per action, then the attacker is quarantined and every change is undone",
+        "Panic mode: dangerous permissions removed from every role until the server is safe",
+        "Automatic backups of roles, channels, permissions, emojis, settings, bans and member roles, with no cap",
+        "Restore: repair what is missing, match a backup exactly, or load it into a new server",
+        "New bots get no permissions until approved; dangerous roles given to new accounts are taken back",
+        "Raid detection with lockdown, a join gate, and image-captcha verification",
+        "Heat-based spam filter, scam-link filter and impersonation check"
+      ],
+      "commands": [
+        {
+          "name": "/setup [level]",
+          "description": "Log channel, quarantine role, protection level and a first backup"
+        },
+        {
+          "name": "/backup create|list|diff|restore|load",
+          "description": "Back up, compare and restore the server"
+        },
+        {
+          "name": "/lockdown on|off",
+          "description": "Lock or unlock every channel"
+        },
+        {
+          "name": "/panic on|off",
+          "description": "Strip dangerous permissions from every role"
+        },
+        {
+          "name": "/quarantine add|remove <member>",
+          "description": "Isolate a member and give their roles back later"
+        },
+        {
+          "name": "/verification setup <channel>",
+          "description": "Captcha or button verification for new members"
+        },
+        {
+          "name": "/config view|set|reset",
+          "description": "Every setting, with autocomplete"
+        },
+        {
+          "name": "/trust add|remove <user>",
+          "description": "Admins anti-nuke never blocks"
+        }
+      ],
+      "requirements": [
+        "Node.js 22.12+ (or Docker)",
+        "Discord bot token with the Server Members and Message Content intents",
+        "The Administrator permission, with Guard's role at the top of the list"
+      ],
+      "telemetry": "It downloads a public list of phishing domains from GitHub every 6 hours and looks up invite codes posted in your server. Backups and messages stay on your machine.",
+      "license": "GPL-3.0-only",
+      "lunar": {
+        "phase": "new",
+        "reason": "Not released yet. The disc is there but not lit: Guard is built and in testing, and its first release will light it."
+      }
+    }
   ]
 }

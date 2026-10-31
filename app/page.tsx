@@ -3,7 +3,7 @@ import { Hero } from "@/components/Hero";
 import { HowItWorks, LatestUpdates } from "@/components/HubSections";
 import { DiscordCta, SectionHead } from "@/components/Sections";
 import { StackJourney } from "@/components/StackJourney";
-import { bots } from "@/lib/bots";
+import { bots, upcoming } from "@/lib/bots";
 import { getFile } from "@/lib/files";
 import { fmtSize } from "@/lib/format";
 import { getMark } from "@/lib/marks";
@@ -32,7 +32,7 @@ export default function Hub() {
         <div className="mx-auto max-w-page">
           <SectionHead index="01" of={4} label="Bots" title="Pick a bot" note="Each one is a zip of source code with a GPL‑3.0 licence. Free, and no account." />
           <div className="mt-10">
-            <BotGallery entries={entries} featured={featured} soonMark={getMark("soon")} />
+            <BotGallery entries={entries} upcoming={upcoming.map((bot) => ({ bot, mark: getMark(bot.slug) }))} featured={featured} soonMark={getMark("soon")} />
           </div>
         </div>
       </section>

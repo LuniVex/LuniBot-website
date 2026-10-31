@@ -44,10 +44,24 @@ export interface Bot {
 
 export interface Shot { file: string; caption: string; kind: "chat" | "card" | "list" }
 
+/**
+ * A bot that is built but not released yet (data/bots.json `upcoming`). It gets a coming-soon card on the
+ * hub and its own page, but no download, stats or votes. Its phase is always the new moon. To release it,
+ * move it to `bots` with the fields a released bot needs (download, dates, shots, status).
+ */
+export interface UpcomingBot extends Pick<Bot, "name" | "slug" | "tagline" | "description" | "language" | "runtime" | "version" | "icon" | "features" | "commands" | "requirements" | "telemetry" | "license" | "lunar"> {
+  /** Where it stands, one or two words ("In testing"). */
+  stage: string;
+  /** One or two sentences on what still has to happen before release. */
+  note: string;
+}
+
 export const site = data.site;
 export const bots = data.bots as unknown as Bot[];
+export const upcoming = (data.upcoming ?? []) as unknown as UpcomingBot[];
 
 export const getBot = (slug: string) => bots.find((b) => b.slug === slug);
+export const getUpcoming = (slug: string) => upcoming.find((b) => b.slug === slug);
 export const allTags = () => [...new Set(bots.flatMap((b) => b.tags))].sort();
 // Folder names can contain spaces ("music bot"), so each path segment is URL-encoded.
 export const sourceUrl = (b: Bot) =>

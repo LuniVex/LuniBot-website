@@ -7,7 +7,7 @@ import { usePill } from "./Motion";
 import { Crescent } from "./Moon";
 import { ThemeToggle } from "./Theme";
 
-const nav = [{ href: "/", label: "Bots" }, { href: "/about", label: "About" }];
+const nav = [{ href: "/", label: "Bots" }, { href: "/docs", label: "Docs" }, { href: "/about", label: "About" }];
 
 /** Frosted, translucent bar that stays at the top. It is clear at the top of the page and frosts over once you scroll. */
 export function Header() {

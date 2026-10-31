@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Headline } from "@/components/Headline";
 import { More } from "@/components/Button";
@@ -13,28 +14,35 @@ import { GetIt } from "@/components/GetIt";
 import { ThreeStage } from "@/components/ThreeStage";
 import { SlashCommand } from "@/components/Term";
 import { VoteButton } from "@/components/VoteButton";
-import { bots, getBot, preview, siteUrl } from "@/lib/bots";
+import { bots, getBot, getUpcoming, preview, siteUrl, upcoming } from "@/lib/bots";
+import { UpcomingPage } from "@/components/UpcomingPage";
 import { getFile, inPublic } from "@/lib/files";
 import { fmtDate, fmtSize } from "@/lib/format";
 import { licenseInfo } from "@/lib/license";
 import { getMark } from "@/lib/marks";
 import { OPENING } from "@/lib/moon";
 
-// Only bots in data/bots.json exist; any other slug is a clean 404.
+// Only bots in data/bots.json exist (released and upcoming); any other slug is a clean 404.
 export const dynamicParams = false;
-export const generateStaticParams = () => bots.map((b) => ({ slug: b.slug }));
+export const generateStaticParams = () => [...bots, ...upcoming].map((b) => ({ slug: b.slug }));
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const bot = getBot((await params).slug);
+  const slug = (await params).slug;
+  const soon = getUpcoming(slug);
+  if (soon) return preview(`/bots/${soon.slug}`, `${soon.name} (coming soon) · LuniBot`, `${soon.tagline} In testing; not released yet.`);
+  const bot = getBot(slug);
   if (!bot) return {};
   const meta = preview(`/bots/${bot.slug}`, `${bot.name} · LuniBot`, `${bot.tagline} Free to download, ${licenseInfo(bot.license).short} licence, runs on your own machine.`);
   return { ...meta, title: bot.name, description: `${bot.tagline} ${bot.description}`.slice(0, 200) };
 }
 
 export default async function BotPage({ params }: Props) {
-  const bot = getBot((await params).slug);
+  const slug = (await params).slug;
+  const soon = getUpcoming(slug);
+  if (soon) return <UpcomingPage bot={soon} />;
+  const bot = getBot(slug);
   if (!bot) notFound();
   const file = getFile(bot);
   const lic = licenseInfo(bot.license);
@@ -174,6 +182,7 @@ export default async function BotPage({ params }: Props) {
               <RevealChild className="border-t border-line/70 pt-5">
                 <h3 className="t-h3">Good to know</h3>
                 <dl className="mt-4 flex flex-col gap-3">
+                  <div><dt className="t-small font-mono text-fg-3">Full guide</dt><dd className="text-fg-2">Setup, every command and setting, and troubleshooting in the <Link href={`/docs/${bot.slug}`} className="link">{bot.name} docs</Link>.</dd></div>
                   <div><dt className="t-small font-mono text-fg-3">Data it sends</dt><dd className="text-fg-2">{bot.telemetry === "none" ? "Nothing beyond Discord itself." : bot.telemetry}</dd></div>
                   <div><dt className="t-small font-mono text-fg-3">Its phase</dt><dd className="text-fg-2"><span className="mb-1 mt-0.5 block"><PhaseBadge phase={bot.lunar.phase} /></span>{bot.lunar.reason}</dd></div>
                   <div><dt className="t-small font-mono text-fg-3">Licence</dt><dd className="text-fg-2">{lic.url ? <a href={lic.url} target="_blank" rel="noopener noreferrer" className="link">{lic.name}</a> : lic.name}. {lic.summary} The full text is in the LICENSE file inside the zip.</dd></div>

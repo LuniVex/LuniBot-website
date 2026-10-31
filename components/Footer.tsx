@@ -17,6 +17,7 @@ export function Footer() {
           <nav aria-label="Site" className={col}>
             <p className="font-mono text-fg-3">Site</p>
             <Link href="/" className={link}>Bots</Link>
+            <Link href="/docs" className={link}>Docs</Link>
             <Link href="/about" className={link}>About</Link>
             <Link href="/about#checking" className={link}>Checking a download</Link>
           </nav>

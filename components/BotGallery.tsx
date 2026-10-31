@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { memo, useMemo, useRef, useState } from "react";
-import type { Bot } from "@/lib/bots";
+import type { Bot, UpcomingBot } from "@/lib/bots";
 import { fmtDate } from "@/lib/format";
 import { licenseInfo } from "@/lib/license";
 import { arrive, cascade, Flip, gsap, reducedMotion, settle, settleDuration, spring, springs, useGSAP } from "@/lib/motion";
@@ -18,14 +18,17 @@ import { VoteButton } from "./VoteButton";
 /** One bot as the hub shows it. `mark` is its inlined SVG. */
 export interface Entry { bot: Bot; size: string; index: string; mark: string | null }
 
+/** A bot that is built but not released: a coming-soon card after the released ones. */
+export interface UpcomingEntry { bot: UpcomingBot; mark: string | null }
+
 /** How well a bot matches a search: name first, then tagline, then anything else. 0 means no match. */
-function score(bot: Bot, q: string) {
+function score(bot: Pick<Bot, "name" | "tagline" | "description" | "language"> & { tags?: string[] }, q: string) {
   if (!q) return 1;
   const name = bot.name.toLowerCase();
   if (name.startsWith(q)) return 4;
   if (name.includes(q)) return 3;
   if (bot.tagline.toLowerCase().includes(q)) return 2;
-  return [bot.description, bot.language, ...bot.tags].join(" ").toLowerCase().includes(q) ? 1 : 0;
+  return [bot.description, bot.language, ...(bot.tags ?? [])].join(" ").toLowerCase().includes(q) ? 1 : 0;
 }
 
 /**
@@ -34,7 +37,7 @@ function score(bot: Bot, q: string) {
  * and played once React has re-rendered, so cards glide to their new places, leaving cards fade out, and
  * an interrupted change picks up from wherever the cards are. Nothing is ever unmounted mid-animation.
  */
-export function BotGallery({ entries, featured, soonMark }: { entries: Entry[]; featured: string; soonMark: string | null }) {
+export function BotGallery({ entries, upcoming = [], featured, soonMark }: { entries: Entry[]; upcoming?: UpcomingEntry[]; featured: string; soonMark: string | null }) {
   const [query, setQuery] = useState("");
   useLoadStats("all");
 
@@ -45,6 +48,8 @@ export function BotGallery({ entries, featured, soonMark }: { entries: Entry[]; 
     .sort((a, b) => b.s - a.s || a.i - b.i)
     .map((x) => x.e.bot.slug), [entries, q]);
   const filtering = Boolean(q);
+  // Upcoming bots stay last and only answer a search that matches them.
+  const upcomingShown = upcoming.filter((u) => score(u.bot, q) > 0).map((u) => u.bot.slug);
   const order = [...visible, ...entries.map((e) => e.bot.slug).filter((s) => !visible.includes(s))];
   const bySlug = new Map(entries.map((e) => [e.bot.slug, e]));
 
@@ -64,7 +69,7 @@ export function BotGallery({ entries, featured, soonMark }: { entries: Entry[]; 
     change();
   };
 
-  const key = `${visible.join(" ")}|${filtering}`;
+  const key = `${visible.join(" ")}|${upcomingShown.join(" ")}|${filtering}`;
   useGSAP(() => {
     shown.current = visible;
     const pending = flip.current;
@@ -108,10 +113,15 @@ export function BotGallery({ entries, featured, soonMark }: { entries: Entry[]; 
             <Assemble className="h-full"><Tile {...bySlug.get(slug)!} featured={slug === featured} /></Assemble>
           </li>
         ))}
+        {upcoming.map((u) => (
+          <li key={u.bot.slug} data-card={`upcoming-${u.bot.slug}`} className={`relative z-[1] min-w-0 md:col-span-2 ${upcomingShown.includes(u.bot.slug) ? "" : "hidden"}`}>
+            <Assemble><Upcoming {...u} /></Assemble>
+          </li>
+        ))}
         <li data-card="soon" className={`relative z-[1] min-w-0 md:col-span-2 ${filtering ? "hidden" : ""}`}><Assemble><Soon mark={soonMark} /></Assemble></li>
       </ul>
 
-      {visible.length === 0 && (
+      {visible.length === 0 && upcomingShown.length === 0 && (
         <Appear className="mt-5 rounded-ui bg-tile p-8">
           <p className="t-tile">Nothing matches “{query.trim()}”.</p>
           <p className="mt-3 text-fg-2">Search covers names, descriptions, languages and tags.</p>
@@ -235,6 +245,39 @@ const Tile = memo(function Tile({ bot, size, index, mark, featured }: Entry & { 
             <VoteButton slug={bot.slug} />
             <More href={`/bots/${bot.slug}`} className="ml-auto">Details</More>
           </div>
+        </div>
+      </div>
+    </article>
+  );
+});
+
+/**
+ * A bot that is built but not released yet. It shares the "More bots" row's unlit look (a dashed hairline
+ * and the new-moon badge) but names the bot, says where it stands, and opens its page. No download, stats or
+ * votes until it is released; the one accent is its mark's solid shape.
+ */
+const Upcoming = memo(function Upcoming({ bot, mark }: UpcomingEntry) {
+  const { ref, handlers } = useCardHover();
+  const meta = "smooth group-hover/card:text-fg-2 group-focus-within/card:text-fg-2";
+  return (
+    <article ref={ref} className="group/card relative" {...handlers}>
+      <div data-lift="" data-press="0.985" className="relative grid will-change-transform gap-8 rounded-ui bg-bg p-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:p-10">
+        <span aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-ui border border-dashed border-line" />
+        <span data-hair="" aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-ui border border-fg-3 opacity-0" />
+        <div className="flex flex-col gap-6 md:flex-row md:items-start">
+          <Mark svg={mark} name={bot.name} size={56} optical />
+          <div className="min-w-0">
+            <p data-meta="" className={`${meta} t-small font-mono text-fg-3`}>Coming soon · {bot.stage} · v{bot.version}</p>
+            <PhaseBadge phase="new" className="mt-1" />
+            <h3 className="t-tile mt-1">
+              <Link href={`/bots/${bot.slug}`} className="rounded-ui after:absolute after:inset-0 after:rounded-ui focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-blue">{bot.name}</Link>
+            </h3>
+            <p className="t-body-lg mt-2 max-w-[40ch] text-fg-2">{bot.tagline}</p>
+          </div>
+        </div>
+        <div className="relative z-10 flex flex-wrap items-center gap-x-6 gap-y-3 md:flex-col md:items-end">
+          <More href={`/bots/${bot.slug}`}>Details</More>
+          <More href={`/docs/${bot.slug}`}>Read the docs</More>
         </div>
       </div>
     </article>

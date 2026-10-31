@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Headline } from "@/components/Headline";
 import { Enter, Reveal } from "@/components/Motion";
 import { body, DiscordCta, SectionHead } from "@/components/Sections";
-import { bots, preview, site } from "@/lib/bots";
+import { bots, preview, site, upcoming } from "@/lib/bots";
 import { OPENING } from "@/lib/moon";
 import { licenseInfo } from "@/lib/license";
 
@@ -60,11 +60,12 @@ export default function About() {
         <p><span className="text-fg">Every bot is released under the GNU General Public License, version 3.</span> Each download includes the full licence text in a <code className={code}>LICENSE</code> file.</p>
         <div className="overflow-hidden rounded-ui bg-tile">
           <dl className="divide-y divide-line/70">
-            {bots.map((b) => {
+            {[...bots, ...upcoming].map((b) => {
               const lic = licenseInfo(b.license);
+              const soon = upcoming.includes(b as (typeof upcoming)[number]);
               return (
                 <div key={b.slug} className="grid gap-1 px-6 py-4 sm:grid-cols-[10rem_1fr]">
-                  <dt className="font-semibold text-fg">{b.name}</dt>
+                  <dt className="font-semibold text-fg">{b.name}{soon && <span className="t-small ml-2 font-mono font-normal text-fg-3">coming soon</span>}</dt>
                   <dd>{lic.url ? <a href={lic.url} target="_blank" rel="noopener noreferrer" className="link">{lic.name}</a> : lic.name}</dd>
                 </div>
               );
